@@ -13,16 +13,14 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class PrimaryFireBullet extends Projectile {
-    private static Sprite masterSprite = null;
-    
-    private Sprite sprite;
+    private static Sprite sprite = null;
     
     public PrimaryFireBullet(double x, double y, double damage) {
         super(x, y, generateSquareHitbox(25, 10), new Vector2D(600, 0), damage, true);
-        if(masterSprite == null) {
-            masterSprite = new Sprite("playerbullet.png", (int)25);
+        if(sprite == null) {
+            sprite = new Sprite("playerbullet.png", (int)25);
         }
-        sprite = new Sprite(masterSprite);
+        sprite = new Sprite(sprite);
     }
     
     public void draw(Graphics2D g) {

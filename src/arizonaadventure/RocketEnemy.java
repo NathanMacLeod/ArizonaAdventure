@@ -12,9 +12,7 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class RocketEnemy extends KillableEntity {
-    private static Sprite masterSprite = null;
-    
-    private Sprite sprite;
+    private static Sprite sprite = null;
     
     private double speed;
     private boolean reachedX = false;
@@ -35,10 +33,9 @@ public class RocketEnemy extends KillableEntity {
         rocketCount = 0;
         timeTraveled = 0;
         
-        if(masterSprite == null) {
-            masterSprite = new Sprite("pepsicopter.png", (int)(65 * 2));
+        if(sprite == null) {
+            sprite = new Sprite("pepsicopter.png", (int)(65 * 2));
         }
-        sprite = new Sprite(masterSprite);
     }
     
     public void draw(Graphics2D g) {

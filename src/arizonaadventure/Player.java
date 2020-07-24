@@ -13,7 +13,7 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class Player extends KillableEntity {   
-    private static Sprite masterSprite = null;
+    private static Sprite sprite = null;
     
     static double width = 90;
     static double height = 15;
@@ -24,19 +24,16 @@ public class Player extends KillableEntity {
     CooldownTimer primaryFire;
     CooldownTimer rocketFire;
     
-    Sprite sprite;
-    
     public Player(double x, double y) {
         super(x, y, generateSquareHitbox(width, height), 100);
         hVel = 500;
         vVel = 500;
         bulletVel = 600;
-        primaryFire = new CooldownTimer(6);
+        primaryFire = new CooldownTimer(3);
         rocketFire = new CooldownTimer(0.33);
-        if(masterSprite == null) {
-            masterSprite = new Sprite("arizona15.png", (int) (width * 1.25));
+        if(sprite == null) {
+            sprite = new Sprite("arizona15.png", (int) (width * 1.25));
         }
-        sprite = new Sprite(masterSprite);
     }
     
     private void takeUserInput(double timePassed, ArizonaAdventure game) {
@@ -64,10 +61,10 @@ public class Player extends KillableEntity {
         if(primaryFire.tryToFire()) {
             game.addNewProjectile(new PrimaryFireBullet(x + width/2.0, y, 20));
         }
-        rocketFire.updateTimer(timePassed);
+        /*rocketFire.updateTimer(timePassed);
         if(rocketFire.tryToFire()) {
             game.addNewProjectile(new PlayerRocket(x, y, 80));
-        }
+        }*/
     }
     
     private void checkForCollisions(ArizonaAdventure game) {

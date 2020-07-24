@@ -13,11 +13,8 @@ import java.util.ArrayList;
  * @author macle
  */
 public class PlayerRocket extends Projectile {
-    private static Sprite masterSprite = null;
-    private static Sprite masterPreignite = null;
-    
-    private Sprite preignite;
-    private Sprite sprite;
+    private static Sprite sprite = null;
+    private static Sprite preignite = null;
     
     private KillableEntity target;
     private double maxSpeed = 800;
@@ -40,12 +37,10 @@ public class PlayerRocket extends Projectile {
         liveTime = 0;
         cosLockAng = Math.cos(lockAng);
         currEjectVelocity = ejectVelocity;
-        if(masterSprite == null) {
-            masterSprite = new Sprite("rocket.png", (int)30 * 3);
-            masterPreignite = new Sprite("rocketpreignite.png", (int)30 * 3);
+        if(sprite == null) {
+            sprite = new Sprite("rocket.png", (int)30 * 3);
+            preignite = new Sprite("rocketpreignite.png", (int)30 * 3);
         }
-        sprite = new Sprite(masterSprite);
-        preignite = new Sprite(masterPreignite);
     }
    
     private void accelerate(double timePassed) {

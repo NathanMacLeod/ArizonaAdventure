@@ -12,9 +12,7 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class EnemyRocket extends Projectile {
-     private static Sprite masterSprite = null;
-    
-    private Sprite sprite;
+     private static Sprite sprite = null;
     
     private boolean lostLock;
     private double speed;
@@ -29,10 +27,9 @@ public class EnemyRocket extends Projectile {
         lockAng = Math.PI/9;
         this.orientation = orientation;
         
-        if(masterSprite == null) {
-            masterSprite = new Sprite("pepsirocket.png", (int)(25 * 4));
+        if(sprite == null) {
+            sprite = new Sprite("pepsirocket.png", (int)(25 * 4));
         }
-        sprite = new Sprite(masterSprite);
     }
     
     private double reactToLockedTarget(double timePassed, ArizonaAdventure game) {

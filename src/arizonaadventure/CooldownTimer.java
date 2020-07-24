@@ -38,6 +38,10 @@ public class CooldownTimer {
             currentTime = 0;
     }
     
+    public void randomize() {
+        currentTime = Math.random() * cooldownTime;
+    }
+    
     public void resetTimer() {
         currentTime = cooldownTime;
     }

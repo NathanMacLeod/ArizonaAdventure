@@ -13,6 +13,7 @@ import java.awt.Color;
  * @author macle
  */
 public class LaserEnemy extends KillableEntity {
+    private Sprite sprite;
     
     private static double width = 65;
     private double speed;
@@ -30,14 +31,18 @@ public class LaserEnemy extends KillableEntity {
     private CooldownTimer cooldown;
     
     public LaserEnemy(double x, double y) {
-        super(x, y, generateSquareHitbox(width, 30), 350);
+        super(x, y, generateSquareHitbox(width, 25), 350);
         orientation = Math.PI;
         speed = 75;
         chargeTime = new CooldownTimer(1);
         fireTime = new CooldownTimer(1);
         cooldown = new CooldownTimer(0.2);
         fireTolCos = Math.cos(Math.PI/180);
-        laserWidth = 50;
+        laserWidth = 25;
+        if(sprite == null) {
+            sprite = new Sprite("redbulllite.png", (int)(width * 1.5));
+        }
+        sprite = new Sprite(sprite);
     }
     
     private void moveAndShoot(double timePassed, ArizonaAdventure game) {
@@ -103,7 +108,9 @@ public class LaserEnemy extends KillableEntity {
     }
     
     public void draw(Graphics2D g) {
-        super.draw(g);
+        //super.draw(g);
+        
+        sprite.draw(g, x, y, orientation);
         
         if(firing || charging) {
             double dist = 2000;

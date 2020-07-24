@@ -25,7 +25,8 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     private ArrayList<KillableEntity> enemies;
     private ArrayList<Projectile> projectiles;
     
-    private SpawnPeriod testLevel;
+    //private SpawnPeriod testLevel;
+    private Boss testBoss;
     
     /**
      * @param args the command line arguments
@@ -97,7 +98,9 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         long currentTime = System.nanoTime();
         long previousTime = currentTime;
         
-        testLevel = new SpawnPeriod(100, 2, new int[] {10, 30, 2, 3});
+        //testLevel = new SpawnPeriod(1, 2, new int[] {0, 0, 0, 1});
+        testBoss = new TrainBoss(this);
+        
         
         while(running) {
             currentTime = System.nanoTime();
@@ -135,7 +138,7 @@ public class ArizonaAdventure extends JPanel implements Runnable {
             p.update(timePassed, this);
         }
         
-        testLevel.update(timePassed, this);
+        testBoss.update(timePassed, this);
         
         for(int i = 0; i < enemies.size(); i++) {
             KillableEntity e = enemies.get(i);

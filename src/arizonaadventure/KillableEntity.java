@@ -23,6 +23,10 @@ public class KillableEntity extends MoveingEntity {
         hp -= damage;
     }
     
+    public void kill() {
+        hp = 0;
+    }
+    
     public boolean isDead() {
         return hp <= 0;
     }
