@@ -24,9 +24,12 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     private Player player;
     private ArrayList<KillableEntity> enemies;
     private ArrayList<Projectile> projectiles;
+    private ArrayList<ExplosionEffect> explosions;
+    private ArrayList<Pickup> pickups;
     
     //private SpawnPeriod testLevel;
-    private Boss testBoss;
+    //private Boss testBoss;
+    private Level1 testLevel;
     
     /**
      * @param args the command line arguments
@@ -45,6 +48,8 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         player = new Player(100, 300);
         enemies = new ArrayList();
         projectiles = new ArrayList();
+        explosions = new ArrayList();
+        pickups = new ArrayList();
         
         frame.addKeyListener(new KeyAdapter() {
             
@@ -98,31 +103,15 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         long currentTime = System.nanoTime();
         long previousTime = currentTime;
         
-        //testLevel = new SpawnPeriod(1, 2, new int[] {0, 0, 0, 1});
-        testBoss = new TrainBoss(this);
+        //testLevel = new SpawnPeriod(100, 2, new int[] {10, 30, 2, 3});
+        //testBoss = new TrainBoss(this);
+        testLevel = new Level1();
         
         
         while(running) {
             currentTime = System.nanoTime();
             double timePassed = (currentTime - previousTime)/ Math.pow(10, 9);
             previousTime = currentTime;
-            
-            double hVel = 250 * timePassed;
-            double vVel = 200 * timePassed;
-            
-            double xVel = 0, yVel = 0;
-            if(w) {
-                yVel = -vVel;
-            }
-            else if(s) {
-                yVel = vVel;
-            }
-            if(a) {
-                xVel = -hVel;
-            }
-            else if(d) {
-                xVel = hVel;
-            }
             
             gameUpdate(timePassed);
             gameRender();
@@ -137,13 +126,26 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         for(Projectile p : projectiles) {
             p.update(timePassed, this);
         }
+        for(ExplosionEffect e : explosions) {
+            e.update(timePassed, this);
+        }  
+        for(Pickup p : pickups) {
+            p.update(timePassed, this);
+        }
+        testLevel.update(timePassed, this);
         
-        testBoss.update(timePassed, this);
+        if(player.isDead()) {
+            running = false;
+            System.exit(0);
+        }
         
         for(int i = 0; i < enemies.size(); i++) {
             KillableEntity e = enemies.get(i);
             if(e.isDead() || e.entityOffLeft()) {
                 enemies.remove(i);
+                if(e.isDead()) {
+                    e.explode(this);
+                }
                 i--;
             }
         }
@@ -155,12 +157,29 @@ public class ArizonaAdventure extends JPanel implements Runnable {
                 i--;
             }
         }
+        
+        for(int i = 0; i < explosions.size(); i++) {
+           ExplosionEffect e = explosions.get(i);
+            if(e.pastLife()) {
+                explosions.remove(i);
+                i--;
+            }
+        }
+        
+        for(int i = 0; i < pickups.size(); i++) {
+            Pickup p = pickups.get(i);
+            if(p.isConsumed() || p.entityOffLeft()) {
+                pickups.remove(i);
+                i--;
+            }
+        }
     }
     
     private void gameRender() {
         Graphics2D g = (Graphics2D) buffer.getGraphics();
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, width, height);
+        //g.setColor(Color.WHITE);
+        //g.fillRect(0, 0, width, height);
+        testLevel.draw(g);
         player.draw(g);
         for(KillableEntity enemy : enemies) {
             enemy.draw(g);
@@ -168,7 +187,21 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         for(Projectile p : projectiles) {
             p.draw(g);
         }
+        for(ExplosionEffect e : explosions) {
+            e.draw(g);
+        }
+        for(Pickup p : pickups) {
+            p.draw(g);
+        }
         getGraphics().drawImage(buffer, 0, 0, null);    
+    }
+    
+    public void addPickup(Pickup p) {
+        pickups.add(p);
+    }
+    
+    public void addExplosion(ExplosionEffect e) {
+        explosions.add(e);
     }
     
     public void addNewProjectile(Projectile p) {
@@ -181,6 +214,14 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     
     public ArrayList<KillableEntity> getEnemies() {
         return enemies;
+    }
+    
+    public boolean allEnemiesDead() {
+        return enemies.isEmpty();
+    }
+    
+    public ArrayList<Pickup> getPickups() {
+        return pickups;
     }
     
     public Player getPlayer() {

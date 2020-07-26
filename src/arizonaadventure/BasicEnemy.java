@@ -13,21 +13,20 @@ import java.util.ArrayList;
  * @author macle
  */
 public class BasicEnemy extends KillableEntity {
-    private static Sprite masterSprite = null;
-    
-    private Sprite sprite;
+    private static Sprite sprite = null;
+    private static Sprite bulletSprite;
     
     private double speed;
     private CooldownTimer fire;
     
     public BasicEnemy(double x, double y) {
-        super(x, y, generateSquareHitbox(50, 35), 100);
+        super(x, y, generateSquareHitbox(50, 35), 100, 55);
         speed = 75;
         fire = new CooldownTimer(0.65);
-        if(masterSprite == null) {
-            masterSprite = new Sprite("spritesprey.png", (int)(50 * 2));
+        if(sprite == null) {
+            sprite = new Sprite("spritesprey.png", (int)(50 * 2));
+            bulletSprite = new Sprite("spritebullet.png", (int)(16 * 2));
         }
-        sprite = new Sprite(masterSprite);
     }
     
     private void shoot(double timePassed, ArizonaAdventure game) {
@@ -35,7 +34,7 @@ public class BasicEnemy extends KillableEntity {
         if(fire.tryToFire()) {
             Player player = game.getPlayer();
             Vector2D velocity = new Vector2D(player.x - x, player.y - y).getUnitVector().scale(250);
-            game.addNewProjectile(new BasicEnemyBullet(x, y, velocity));
+            game.addNewProjectile(new BasicEnemyBullet(x, y, velocity, bulletSprite));
         }
     }
     

@@ -27,7 +27,7 @@ public class RocketEnemy extends KillableEntity {
     private double accelFactor;
     
     public RocketEnemy(double x, double y) {
-        super(x, y, generateSquareHitbox(65, 50), 500);
+        super(x, y, generateSquareHitbox(65, 50), 420, 70);
         speed = 75;
         rocketFire = new CooldownTimer(0.75);
         rocketCount = 0;
@@ -71,7 +71,7 @@ public class RocketEnemy extends KillableEntity {
                 if(rocketFire.tryToFire()) {
                     Player player = game.getPlayer();
                     Vector2D dir = new Vector2D(player.x - x, player.y - y);
-                    game.addNewProjectile(new EnemyRocket(x, y, dir.getAngle(), 20));
+                    game.addNewProjectile(new EnemyRocket(x, y, dir.getAngle(), 25));
                     rocketCount++;
                 }
             }

@@ -21,7 +21,7 @@ public class EnemyRocket extends Projectile {
     private double turnRate;
     
     public EnemyRocket(double x, double y, double orientation, double damage) {
-        super(x, y, generateSquareHitbox(30, 8), new Vector2D(0, 0), damage, false);
+        super(x, y, generateSquareHitbox(30, 8), new Vector2D(0, 0), damage, 40, false);
         speed = 300;
         turnRate = 0.75;
         lockAng = Math.PI/9;

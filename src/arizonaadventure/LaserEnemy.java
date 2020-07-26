@@ -31,7 +31,7 @@ public class LaserEnemy extends KillableEntity {
     private CooldownTimer cooldown;
     
     public LaserEnemy(double x, double y) {
-        super(x, y, generateSquareHitbox(width, 25), 350);
+        super(x, y, generateSquareHitbox(width, 25), 350, 70);
         orientation = Math.PI;
         speed = 75;
         chargeTime = new CooldownTimer(1);

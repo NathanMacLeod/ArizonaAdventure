@@ -5,27 +5,25 @@
  */
 package arizonaadventure;
 
-import java.util.ArrayList;
 import java.awt.Graphics2D;
-
 /**
  *
  * @author macle
  */
-public class PrimaryFireBullet extends Projectile {
+public class HealthPickup extends Pickup {
     private static Sprite sprite = null;
+    private static double width = 40;
+    private static double height = 70;
     
-    public PrimaryFireBullet(double x, double y, double damage) {
-        super(x, y, generateSquareHitbox(25, 10), new Vector2D(600, 0), damage, 25, true);
+    public HealthPickup(double x, double y) {
+        super(x, y, generateSquareHitbox(width, height));
         if(sprite == null) {
-            sprite = new Sprite("playerbullet.png", (int)25);
+            sprite = new Sprite("healthpickup.png", 80);
         }
-        sprite = new Sprite(sprite);
     }
     
     public void draw(Graphics2D g) {
         //super.draw(g);
-        sprite.draw(g, x, y, orientation);
+        sprite.draw(g, x, y, 0);
     }
-    
 }

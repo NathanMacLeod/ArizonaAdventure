@@ -16,16 +16,22 @@ public class Projectile extends MoveingEntity {
     private boolean isFriendly;
     private double damage;
     private boolean collided = false;
+    private double size;
     
-    public Projectile(double x, double y, ArrayList<Vector2D> hitbox, Vector2D velocity, double damage, boolean isFriendly) {
+    public Projectile(double x, double y, ArrayList<Vector2D> hitbox, Vector2D velocity, double damage, double size, boolean isFriendly) {
         super(x, y, hitbox, 0);
         this.velocity = velocity;
         this.isFriendly = isFriendly;
         this.damage = damage;
+        this.size = size;
     }
     
     public boolean hasCollided() {
         return collided;
+    }
+    
+    private void addExplosions(ArizonaAdventure game) {
+        game.addExplosion(new ExplosionEffect(x, y, (int) (size * 1), 0.1));
     }
     
     protected boolean checkForCollision(ArizonaAdventure game) {
@@ -34,6 +40,7 @@ public class Projectile extends MoveingEntity {
                 if(hitboxesIntersecting(enemy)) {
                     enemy.takeDamage(damage);
                     collided = true;
+                    addExplosions(game);
                     return true;
                 }
             }
@@ -43,15 +50,20 @@ public class Projectile extends MoveingEntity {
             if(hitboxesIntersecting(player)) {
                 player.takeDamage(damage);
                 collided = true;
+                addExplosions(game);
                 return true;
             }
         }
         return false;
     }
     
-    public void update(double timePassed, ArizonaAdventure game) {
+    protected void move(double timePassed) {
         Vector2D translation = velocity.scale(timePassed);
         moveEntity(translation.x, translation.y, 0);
+    }
+    
+    public void update(double timePassed, ArizonaAdventure game) {
+        move(timePassed);
         checkForCollision(game);
     }
     

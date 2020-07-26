@@ -17,7 +17,7 @@ public class FodderEnemy extends KillableEntity {
     private double speed;
     
     public FodderEnemy(double x, double y) {
-        super(x, y, generateSquareHitbox(60, 30), 10);
+        super(x, y, generateSquareHitbox(60, 30), 10, 40);
         speed = 225;
         if(sprite == null) {
             sprite = new Sprite("cokeplane.png", (int)(60 * 1.1));

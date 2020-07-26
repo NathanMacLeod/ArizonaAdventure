@@ -19,7 +19,7 @@ public class MoveingEntity implements Drawable, Updatable {
     private ArrayList<Vector2D> hitbox;
     private ArrayList<Vector2D> hitboxWorldRel;
     protected double orientation;
-    private double sizeRadius;
+    protected double sizeRadius;
     
     
     public MoveingEntity(double x, double y, ArrayList<Vector2D> hitbox, double orientation) {
@@ -77,6 +77,10 @@ public class MoveingEntity implements Drawable, Updatable {
     
     public boolean entityOffLeft() {
         return x + sizeRadius < 0;
+    }
+    
+    public void snapToOrientation() {
+        generateWorldHitbox();
     }
     
     public void moveEntity(double dx, double dy, double rotation) {

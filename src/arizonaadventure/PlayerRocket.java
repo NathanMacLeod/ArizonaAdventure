@@ -30,7 +30,7 @@ public class PlayerRocket extends Projectile {
     private double turnRate = 1.5;
     
     public PlayerRocket(double x, double y, double damage) {
-        super(x, y, generateSquareHitbox(30, 7), new Vector2D(0, 0), damage, true);
+        super(x, y, generateSquareHitbox(30, 7), new Vector2D(0, 0), damage, 40, true);
         target = null;
         currVelocity = 0;
         
@@ -98,7 +98,7 @@ public class PlayerRocket extends Projectile {
         }
     }
     
-    private void move(double timePassed) {
+    public void move(double timePassed) {
         double dTheta = 0;
         if(target != null) {
             dTheta = reactToLockedTarget(timePassed);

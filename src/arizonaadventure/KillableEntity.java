@@ -13,10 +13,16 @@ import java.util.ArrayList;
 public class KillableEntity extends MoveingEntity {
     
     protected double hp;
+    private double size;
     
-    public KillableEntity(double x, double y, ArrayList<Vector2D> hitbox, double hp) {
+    public KillableEntity(double x, double y, ArrayList<Vector2D> hitbox, double hp, double size) {
         super(x, y, hitbox, 0);
         this.hp = hp;
+        this.size = size;
+    }
+    
+    public void explode(ArizonaAdventure game) {
+        game.addExplosion(new ExplosionEffect(x, y, (int) (size * 1.5), 0.25));
     }
     
     public void takeDamage(double damage) {

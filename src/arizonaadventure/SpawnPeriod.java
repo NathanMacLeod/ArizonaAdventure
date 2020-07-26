@@ -15,6 +15,7 @@ public class SpawnPeriod implements Updatable {
         1,
         4,
         1,
+        1,
         1
     };
     
@@ -24,12 +25,14 @@ public class SpawnPeriod implements Updatable {
     private int[] enemies;
     private double initialSpawnRate;
     private int spawnTally = 0;
+    private boolean allSpawned;
     
     public SpawnPeriod(double duration, double difficultyCurve, int[] enemies) {
         this.enemies = enemies;
         this.difficultyCurve = difficultyCurve;
         this.levelDuration = duration;
         life = 0;
+        allSpawned = false;
         
         double avgSpawnRate = getToSpawnCount() / levelDuration;
         initialSpawnRate = avgSpawnRate - avgSpawnRate * (difficultyCurve - 1)/ (difficultyCurve + 1);
@@ -41,6 +44,10 @@ public class SpawnPeriod implements Updatable {
             total += count;
         }
         return total;
+    }
+    
+    public boolean periodFinished() {
+        return allSpawned && life >= levelDuration;
     }
     
     private void spawnRandomEnemy(ArizonaAdventure game) {
@@ -60,7 +67,7 @@ public class SpawnPeriod implements Updatable {
         enemies[type] -= 1;
         
         for(int i = 0; i < nToSpawn[type]; i++) {  
-            KillableEntity enemy = null;
+            MoveingEntity enemy = null;
             switch(type) {
                 case 0: //shooty enemy
                     enemy = new BasicEnemy(0, 0);
@@ -73,12 +80,19 @@ public class SpawnPeriod implements Updatable {
                     break;
                 case 3:
                     enemy = new LaserEnemy(0, 0);
+                    break;
+                case 4:
+                    enemy = new HealthPickup(0, 0);
+                    break;
             }
             if(y == -1) {
                 y = enemy.getRadius() + Math.random() * (game.getGameHeight() - 2 * enemy.getRadius());
             }
             enemy.moveEntity(game.getGameWidth() + enemy.getRadius() + (enemy.getRadius() * 2.5 * i), y, 0);
-            game.addNewEnemy(enemy);
+            if(enemy instanceof KillableEntity)
+                game.addNewEnemy((KillableEntity) enemy);
+            else
+                game.addPickup((Pickup) enemy);
         }
     }
     
@@ -90,6 +104,9 @@ public class SpawnPeriod implements Updatable {
                 spawnRandomEnemy(game);
             }
             spawnTally = totalSpawn;
+        }
+        else {
+            allSpawned = true;
         }
     } 
     

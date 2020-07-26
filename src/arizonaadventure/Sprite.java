@@ -30,6 +30,13 @@ public class Sprite {
         sprite.getGraphics().drawImage(copyFrom.sprite, 0, 0, null);
     }
     
+    public Sprite(Sprite base, int size) {
+        BufferedImage spriteImage = base.sprite;
+        sprite = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics imageGraphics = sprite.getGraphics();
+        imageGraphics.drawImage(spriteImage, 0, 0, size, size, 0, 0, spriteImage.getWidth(), spriteImage.getHeight(), null);
+    }
+    
     protected BufferedImage fetchSprite(String name, int size) {
         BufferedImage sprite = null;
         try {
@@ -47,7 +54,9 @@ public class Sprite {
     public void draw(Graphics2D g, double x, double y, double orientation) {
         AffineTransform transformation = new AffineTransform();
         transformation.translate(x, y);
-        transformation.rotate(orientation);
+        if(orientation != 0) {
+            transformation.rotate(orientation);
+        }
         transformation.translate(-sprite.getWidth()/2.0, - sprite.getHeight()/2.0);
         g.drawImage(sprite, transformation, null);
     }
