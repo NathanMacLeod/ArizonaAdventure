@@ -22,6 +22,7 @@ public class TrainBoss implements Boss {
     private final double shakeMagnitude = 25;
     private final double shakePeriod = 8;
     private double life;
+    private final double carHP = 700; 
     
     private static Sprite basicBullet;
     private static Sprite basicBody;
@@ -31,9 +32,14 @@ public class TrainBoss implements Boss {
     private static Sprite lobTurret;
     private static Sprite missileBody;
     private static Sprite missileTurret;
-    private static Sprite burstBullet;
+    private static Sprite burstBullet1;
+    private static Sprite burstBullet2;
+    private static Sprite burstBullet3;
     private static Sprite burstBody;
     private static Sprite burstGun;
+    private static Sprite sprayBullet;
+    private static Sprite sprayBody;
+    private static Sprite sprayTurret;
     private static Sprite pepsiCar;
     private static Sprite mtwndewCar;
     private static Sprite liptonCar;
@@ -45,16 +51,21 @@ public class TrainBoss implements Boss {
         mtwndewCar = new Sprite("mtwndewcar.png", 500);
         liptonCar = new Sprite("liptoncar.png", 500);
         sierraCar = new Sprite("sierracar.png", 500);
-        pepsicoCar = new Sprite("pepsicocar.png", 500);
-        burstBullet = new Sprite("5hourenergy.png", 32);
-        burstBody = new Sprite("5hourdome.png", (int) (55 * 1.5));
-        burstGun = new Sprite("gattlegun.png", (int) 60 * 2);
-        basicBody = new Sprite("phalanxBase.png", (int)(50));
-        basicTurret = new Sprite("phalanxTurret.png", (int)(50 * 1.6));
+        pepsicoCar = new Sprite("pepsicotrain.png", 690);
+        burstBullet1 = new Sprite("spritebullet.png", 32);
+        burstBullet2 = new Sprite("gfuel.png", 32);
+        burstBullet3 = new Sprite("pepsi.png", 32);
+        burstBody = new Sprite("pepsicodome.png", (int) (55 * 1.5));
+        burstGun = new Sprite("gattlegun.png", 140);
+        basicBody = new Sprite("mtwnhand.png", 140);
+        basicTurret = new Sprite("mtwngun.png", (int)(50 * 1.6));
         lobBody = new Sprite("teapotbase.png", (int)(50));
         lobTurret = new Sprite("teapot.png", (int)(50 * 1.6));
         lobBullet = new Sprite("teadrop.png", 25);
-        basicBullet = new Sprite("monster.png", 32);
+        sprayBody = new Sprite("sierrabase.png", (int)(55));
+        sprayTurret = new Sprite("sierraspray.png", (int)(50 * 1.4));
+        sprayBullet = new Sprite("teadrop.png", 25);
+        basicBullet = new Sprite("mtwndew.png", 32);
         missileBody = new Sprite("pepsiBase.png", (int) (60 * 1.25));
         missileTurret = new Sprite("pepsirocketinert.png", (int) (60 * 2));
     }
@@ -64,10 +75,10 @@ public class TrainBoss implements Boss {
         currentCar = 0;
         movingCars = true;
         cars = new TrainCar[] {
-            new TrainCar(0, 0, 450, 150, new Sprite(pepsiCar)), 
-            new TrainCar(0, 0, 450, 150, new Sprite(mtwndewCar)), 
+            new TrainCar(0, 0, 450, 170, new Sprite(mtwndewCar)), 
             new TrainCar(0, 0, 450, 150, new Sprite(liptonCar)), 
             new TrainCar(0, 0, 450, 150, new Sprite(sierraCar)),
+            new TrainCar(0, 0, 450, 150, new Sprite(pepsiCar)),  
             new TrainCar(0, 0, 450, 150, new Sprite(pepsicoCar))
         };
         
@@ -81,23 +92,30 @@ public class TrainBoss implements Boss {
             x += cars[i].width + gap;
             switch(i) {
                 case 0:
-                    cars[i].spawnTurrets(game, new int[] {3});
+                    cars[i].spawnTurrets(game, new int[] {0, 0, 0});
                     break;
                 case 1:
-                    cars[i].spawnTurrets(game, new int[] {0, 1, 0, 1});
+                    cars[i].spawnTurrets(game, new int[] {3, 3, 3});
                     break;
                 case 2:
-                    cars[i].spawnTurrets(game, new int[] {0, 2});
+                    cars[i].spawnTurrets(game, new int[] {4, 4, 4});
                     break;
                 case 3:
-                    cars[i].spawnTurrets(game, new int[] {0, 1, 2, 0});
+                    cars[i].spawnTurrets(game, new int[] {1, 1, 1, 1});
                     break;
                  case 4:
-                    cars[i].spawnTurrets(game, new int[] {1, 2, 1, 2, 1});
+                    cars[i].spawnTurrets(game, new int[] {0, 3, 4, 1, 2});
                     break;
             }
             game.addNewEnemy(cars[i]);
         }
+    }
+    
+    public double getHealthPercentage() {
+        if(currentCar < cars.length) {
+            return cars[currentCar].hp/carHP;
+        }
+        return 0;
     }
     
     private abstract class Turret extends KillableEntity {
@@ -120,6 +138,7 @@ public class TrainBoss implements Boss {
         public abstract void shoot(double timePassed, ArizonaAdventure game);
         
         public void draw(Graphics2D g) {
+           // super.draw(g);
             gunSprite.draw(g, x, y, playerDir);
             bodySprite.draw(g, x, y, 0);
         }
@@ -137,7 +156,7 @@ public class TrainBoss implements Boss {
         
         public MissileTurret() {
             super(0, 0, 40, 50, 200);
-            fire = new CooldownTimer(0.43);
+            fire = new CooldownTimer(0.45);
             fire.randomize();
             bodySprite = missileBody;
             gunSprite = missileTurret;
@@ -155,10 +174,11 @@ public class TrainBoss implements Boss {
     
     private class BasicTurret extends Turret {
         private CooldownTimer fire;
+        double r = 10;
         
         public BasicTurret() {
             super(0, 0, 30, 50, 200);
-            fire = new CooldownTimer(0.95);
+            fire = new CooldownTimer(1.25);
             fire.randomize();
             gunSprite = basicTurret;
             bodySprite = basicBody;
@@ -169,8 +189,56 @@ public class TrainBoss implements Boss {
             fire.updateTimer(timePassed);
             if(fire.tryToFire()) {
                 Player player = game.getPlayer();
-                Vector2D velocity = new Vector2D(player.x - x, player.y - y).getUnitVector().scale(250);
-                game.addNewProjectile(new BasicEnemyBullet(x, y, velocity, basicBullet));
+                Vector2D velocity = new Vector2D(player.x - x, player.y - y).getUnitVector().scale(350);
+                double rX = r * Math.cos(orientation - Math.PI/2.0);
+                double rY = r * Math.sin(orientation - Math.PI/2.0);
+                game.addNewProjectile(new BasicEnemyBullet(x + rX, y + rY, velocity, basicBullet));
+            }
+        }
+    }
+    
+    private class SprayTurret extends Turret {
+        private int nProjectiles = 3;
+        private double cone = Math.PI/9;
+        private double coneCos;
+        private double coneSin;
+        private double dCos;
+        private double dSin;
+        private CooldownTimer fire;
+        double r = 25;
+        
+        public SprayTurret() {
+            super(0, 0, 30, 50, 200);
+            fire = new CooldownTimer(0.93);
+            fire.randomize();
+            gunSprite = sprayTurret;
+            bodySprite = sprayBody;
+            coneCos = Math.cos(-cone/2.0);
+            coneSin = Math.sin(-cone/2.0);
+            double del = cone / (nProjectiles + 1);
+            dCos = Math.cos(del);
+            dSin = Math.sin(del);
+        }
+        
+        public void shoot(double timePassed, ArizonaAdventure game) {
+            fire.updateTimer(timePassed);
+            if(fire.tryToFire()) {
+                Player player = game.getPlayer();
+                Vector2D curr = new Vector2D(player.x - x, player.y - y).getUnitVector().scale(250);
+                double nX = curr.x * coneCos - curr.y * coneSin;
+                double nY = curr.x * coneSin + curr.y * coneCos;
+                curr.x = nX;
+                curr.y = nY;
+                double rX = r * Math.cos(orientation - Math.PI/2.0);
+                double rY = r * Math.sin(orientation - Math.PI/2.0);
+                for(int i = 0; i < nProjectiles; i++) {
+                    nX = curr.x * dCos - curr.y * dSin;
+                    nY = curr.x * dSin + curr.y * dCos;
+                    curr.x = nX;
+                    curr.y = nY;
+                    game.addNewProjectile(new BasicEnemyBullet(x + rX, y + rY, new Vector2D(curr.x, curr.y), basicBullet));
+                }
+                
             }
         }
     }
@@ -181,7 +249,7 @@ public class TrainBoss implements Boss {
         
         public LobTurret() {
             super(0, 0, 30, 50, 200);
-            fire = new CooldownTimer(0.95);
+            fire = new CooldownTimer(1.06);
             fire.randomize();
             gunSprite = lobTurret;
             bodySprite = lobBody;
@@ -205,7 +273,8 @@ public class TrainBoss implements Boss {
                 double air = 120;
                 double yH = p.y - air - y;
                 if(yH > 0) {
-                    yH = 0;
+                    yH = -air;
+                    air = p.y - yH - y;
                 }
                 double xH = p.x - x;
                 double g = LobProjectile.getGravity();
@@ -226,7 +295,7 @@ public class TrainBoss implements Boss {
         
         public BurstTurret() {
             super(0, 0, 60, 40, 350);
-            burst = new CooldownTimer(0.18);
+            burst = new CooldownTimer(0.22);
             fire = new CooldownTimer(10);
             bodySprite = burstBody;
             gunSprite = burstGun;
@@ -246,8 +315,22 @@ public class TrainBoss implements Boss {
                     burstCount--;
                     Player player = game.getPlayer();
                     Vector2D velocity = new Vector2D(player.x - x, player.y - y).getUnitVector().scale(250);
+                    
+                    Sprite sprite = null;
+                    switch((int) (Math.random() * 3)) {
+                        case 0:
+                            sprite = burstBullet1;
+                            break;
+                        case 1:
+                            sprite = burstBullet2;
+                            break;
+                        case 2:
+                            sprite = burstBullet3;
+                            break;
+                    }
+                    
                     game.addNewProjectile(new BasicEnemyBullet(x + radius * Math.cos(playerDir),
-                            y + radius * Math.sin(playerDir), velocity, burstBullet));
+                            y + radius * Math.sin(playerDir), velocity, sprite));
                 }
             }
         }
@@ -287,6 +370,9 @@ public class TrainBoss implements Boss {
                         break;
                     case 3:
                         t = new LobTurret();
+                        break;
+                    case 4:
+                        t = new SprayTurret();
                         break;
                 }
                 double xPos = x - width/2.0 + (i + 1) * width/(nTurrets + 1);

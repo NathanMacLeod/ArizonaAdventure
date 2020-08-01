@@ -28,6 +28,13 @@ public class ExplosionEffect implements Updatable, Drawable {
         this.life = life;
     }
     
+    public ExplosionEffect(Sprite alternate, double x, double y, int size, double life) {
+        this.x = x;
+        this.y = y;
+        sprite = new Sprite(alternate, size);
+        this.life = life;
+    }
+    
     public boolean pastLife() {
         return life <= 0;
     }

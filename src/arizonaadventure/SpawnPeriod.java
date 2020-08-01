@@ -16,6 +16,7 @@ public class SpawnPeriod implements Updatable {
         4,
         1,
         1,
+        1,
         1
     };
     
@@ -84,6 +85,8 @@ public class SpawnPeriod implements Updatable {
                 case 4:
                     enemy = new HealthPickup(0, 0);
                     break;
+                case 5:
+                    enemy = new BurstEnemy(0, 0);
             }
             if(y == -1) {
                 y = enemy.getRadius() + Math.random() * (game.getGameHeight() - 2 * enemy.getRadius());

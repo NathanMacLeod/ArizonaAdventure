@@ -83,7 +83,7 @@ public class PlayerRocket extends Projectile {
         Vector2D relPosUnit = new Vector2D(target.getX() - x, target.getY() - y).getUnitVector();
         
         double cosAng = relPosUnit.dot(orientationVector);
-        if (cosAng < cosLockAng) { //lost lock
+        if (cosAng < cosLockAng || target.isDead()) { //lost lock
             target = null;
             return 0;
         }

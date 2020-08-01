@@ -25,7 +25,7 @@ public class LaserEnemy extends KillableEntity {
     private double turnRate = 0.5;
     private double fireTolCos;
     private double laserWidth;
-    private double damage = 40;
+    private double damage = 50;
     private CooldownTimer chargeTime;
     private CooldownTimer fireTime;
     private CooldownTimer cooldown;
@@ -38,7 +38,7 @@ public class LaserEnemy extends KillableEntity {
         fireTime = new CooldownTimer(1);
         cooldown = new CooldownTimer(0.2);
         fireTolCos = Math.cos(Math.PI/180);
-        laserWidth = 25;
+        laserWidth = 40;
         if(sprite == null) {
             sprite = new Sprite("redbulllite.png", (int)(width * 1.5));
         }

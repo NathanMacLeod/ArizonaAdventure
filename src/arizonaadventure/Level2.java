@@ -5,44 +5,43 @@
  */
 package arizonaadventure;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
-import java.io.IOException;
+
 /**
  *
  * @author macle
  */
-public class Level1 extends Level {
+public class Level2 extends Level {
     
-    public Level1(int width, int height) {
+    public Level2(int width, int height) {
         super(width, height);
     } 
     
     protected void preloadSprites() {
         try {
-            background = ImageIO.read(new File("./sprites/lvl1bg.png"));
-            foreground = ImageIO.read(new File("./sprites/lvl1fg.png"));
-            middleground = ImageIO.read(new File("./sprites/lvl1mg.png"));
+            background = ImageIO.read(new File("./sprites/lvl2bg.png"));
+            foreground = null;//ImageIO.read(new File("./sprites/lvl2fg.png"));
+            middleground = ImageIO.read(new File("./sprites/lvl2mg.png"));
             backgroundWidth = background.getWidth();
         } catch(IOException e) {
             System.out.println("failed to read level 1 backgrounds");
         }
-        TrainBoss.loadSprites();
+        SubBoss.loadSprites();
     }
     
     protected void setWaves() {
         waves = new ArrayList();
-        waves.add(new SpawnPeriod(20, 3, new int[] {0, 9, 0, 0, 0, 0}));
-        waves.add(new SpawnPeriod(50, 3, new int[] {10, 16, 0, 0, 0, 0}));
-        waves.add(new SpawnPeriod(4, 1, new int[] {0, 0, 1, 0, 0, 0}));
-        waves.add(new SpawnPeriod(70, 2, new int[] {14, 25, 1, 0, 0, 0}));
+        waves.add(new SpawnPeriod(30, 3, new int[] {14, 17, 0, 0, 0, 0}));
+        waves.add(new SpawnPeriod(50, 3, new int[] {9, 16, 2, 0, 0, 7}));
+        waves.add(new SpawnPeriod(4, 1, new int[] {0, 0, 0, 3, 0, 0}));
+        waves.add(new SpawnPeriod(70, 2.5, new int[] {8, 16, 4, 3, 0, 7}));
         waves.add(new SpawnPeriod(6, 1, new int[] {0, 0, 0, 0, 1, 0}));
     }
     
     protected Boss spawnBoss(ArizonaAdventure game) {
-        return new TrainBoss(game);
+        return new SubBoss(game);
     }
-    
 }

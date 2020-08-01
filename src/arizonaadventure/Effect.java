@@ -9,12 +9,8 @@ package arizonaadventure;
  *
  * @author macle
  */
-public interface Boss extends Updatable {
+public abstract class Effect implements Drawable, Updatable {
     
-    public boolean bossDefeated();
-
-    public void update(double timePassed, ArizonaAdventure game);
-    
-    public double getHealthPercentage();
+    public abstract boolean done();
     
 }

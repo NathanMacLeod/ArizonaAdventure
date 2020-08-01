@@ -7,6 +7,9 @@ package arizonaadventure;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -19,17 +22,32 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     private boolean running;
     private int width, height;
     private BufferedImage buffer;
+    private Sprite token;
+    private int tokenSize = 50;
     private boolean w, a, s, d;
+    private boolean click;
+    private int mouseX, mouseY;
+    private int maxLevel;
+    private UpgradeList upgrades;
+    private int upgradeTokens = 250;
+    private int maxTokens = 25;
     
+    private boolean playerDead;
     private Player player;
     private ArrayList<KillableEntity> enemies;
     private ArrayList<Projectile> projectiles;
+    private ArrayList<Projectile> projQueue;
     private ArrayList<ExplosionEffect> explosions;
     private ArrayList<Pickup> pickups;
+    private ArrayList<Effect> effects;
     
+    private ImagePanel currPanel;
+    private Level currLevel;
+    private boolean inMenu = true;
+    private int currLevelNumber;
     //private SpawnPeriod testLevel;
     //private Boss testBoss;
-    private Level1 testLevel;
+    
     
     /**
      * @param args the command line arguments
@@ -44,12 +62,19 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
-        
-        player = new Player(100, 300);
+        upgrades = new UpgradeList();
+        token = new Sprite("token.png", tokenSize);
         enemies = new ArrayList();
         projectiles = new ArrayList();
         explosions = new ArrayList();
+        effects = new ArrayList();
         pickups = new ArrayList();
+        projQueue = new ArrayList();
+        mouseX = 0;
+        mouseY = 0;
+        maxLevel = 3;
+        
+        currPanel = new LevelSelect(maxLevel);
         
         frame.addKeyListener(new KeyAdapter() {
             
@@ -90,6 +115,23 @@ public class ArizonaAdventure extends JPanel implements Runnable {
             }
         });
         
+        addMouseListener(new MouseAdapter() {
+            
+            public void mouseReleased(MouseEvent e) {
+                click = true;
+                mouseX = e.getX();
+                mouseY = e.getY();
+            }
+   
+        });
+        
+        addMouseMotionListener(new MouseAdapter() {
+            public void mouseMoved(MouseEvent e) {
+                mouseX = e.getX();
+                mouseY = e.getY();
+            }
+        });
+        
         start();
     }   
  
@@ -105,21 +147,98 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         
         //testLevel = new SpawnPeriod(100, 2, new int[] {10, 30, 2, 3});
         //testBoss = new TrainBoss(this);
-        testLevel = new Level1();
-        
         
         while(running) {
             currentTime = System.nanoTime();
             double timePassed = (currentTime - previousTime)/ Math.pow(10, 9);
             previousTime = currentTime;
             
-            gameUpdate(timePassed);
-            gameRender();
+            if(inMenu) {
+                menus(timePassed);
+            }
+            else {
+                gameUpdate(timePassed);
+                gameRender();
+            }
         }
     }
     
+    public void loadMenu(MenuState newMenu) {
+        switch(newMenu) {
+            case Levels:
+                currPanel = new LevelSelect(maxLevel);
+                break;
+            case Upgrades:
+                currPanel = new UpgradeMenu(this);
+        }
+    }
+    
+    public void returnFromGame(boolean completed) {
+        if(completed && currLevelNumber == maxLevel) {
+            maxLevel++;
+            switch(currLevelNumber) {
+                case 1:
+                    upgradeTokens += 10;
+                    maxTokens += 10;
+                    break;
+                case 2:
+                    upgradeTokens += 15;
+                    maxTokens += 15;
+                    break;
+            }
+        }
+        currPanel = new LevelSelect(maxLevel);
+        inMenu = true;
+    }
+    
+    public void loadLevel(int level) {
+        switch(level) {
+            case 1:
+                currLevel = new Level1((int) getGameWidth(), (int) getGameHeight());
+                break;
+            case 2:
+                currLevel = new Level2((int) getGameWidth(), (int) getGameHeight());
+                break;
+            case 3:
+                currLevel = new Level3((int) getGameWidth(), (int) getGameHeight());
+                break;
+            default:
+                System.out.println("No corresponding level found");
+                return;
+        }
+        playerDead = false;
+        currLevelNumber = level;
+        player = new Player(-200, 300, upgrades);
+        player.startZoomIn();
+        enemies.clear();
+        projectiles.clear();
+        explosions.clear();
+        effects.clear();
+        pickups.clear();
+        projQueue.clear();
+        effects.add(new ColorFlash(0, 5, (int) width, (int) height, 0.0f, 0.0f, 0.0f));
+        inMenu = false;
+    }
+    
+    private void menus(double timePassed) {
+        currPanel.update(timePassed, this);
+        click = false;
+        Graphics2D g = (Graphics2D) buffer.getGraphics();
+        currPanel.draw(g);
+        drawTokens(g);
+        getGraphics().drawImage(buffer, 0, 0, null);  
+    }
+    
     private void gameUpdate(double timePassed) {
-        player.update(timePassed, this);
+        if(!playerDead) {
+            player.update(timePassed, this);
+        }
+        
+        for(Projectile p: projQueue) {
+            projectiles.add(p);
+        }
+        projQueue.clear();
+        
         for(KillableEntity enemy : enemies) {
             enemy.update(timePassed, this);
         }
@@ -132,11 +251,16 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         for(Pickup p : pickups) {
             p.update(timePassed, this);
         }
-        testLevel.update(timePassed, this);
+        for(Effect e : effects) {
+            e.update(timePassed, this);
+        }
+        currLevel.update(timePassed, this);
         
-        if(player.isDead()) {
-            running = false;
-            System.exit(0);
+        if(player.isDead() && !playerDead) {
+            player.explode(this);
+            currLevel.playerDead();
+            playerDead = true;
+            effects.add(new ColorFlash(2, 10000, width, height, 0.0f, 0.0f, 0.0f));
         }
         
         for(int i = 0; i < enemies.size(); i++) {
@@ -152,7 +276,7 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         
         for(int i = 0; i < projectiles.size(); i++) {
             Projectile p = projectiles.get(i);
-            if(p.hasCollided() || p.entityOutOfBounds(this)) {
+            if(p.expired() || p.entityOutOfBounds(this)) {
                 projectiles.remove(i);
                 i--;
             }
@@ -173,31 +297,84 @@ public class ArizonaAdventure extends JPanel implements Runnable {
                 i--;
             }
         }
+        
+        for(int i = 0; i < effects.size(); i++) {
+            Effect e = effects.get(i);
+            if(e.done()) {
+                effects.remove(i);
+                i--;
+            }
+        }
+    }
+    
+    private void drawTokens(Graphics2D g) {
+        token.draw(g, width - tokenSize * 2, tokenSize/1.5, 0);
+        g.setColor(new Color(1.0f, 1.0f, 1.0f, 0.8f));
+        g.setFont(new Font("SansSerif", Font.BOLD, 30));
+        g.drawString("x" + upgradeTokens, (int) (width - tokenSize * 1.5), tokenSize);
     }
     
     private void gameRender() {
         Graphics2D g = (Graphics2D) buffer.getGraphics();
         //g.setColor(Color.WHITE);
         //g.fillRect(0, 0, width, height);
-        testLevel.draw(g);
-        player.draw(g);
+        currLevel.draw(g);
+        if(!playerDead) {
+            player.draw(g);
+        }
         for(KillableEntity enemy : enemies) {
             enemy.draw(g);
         }
         for(Projectile p : projectiles) {
             p.draw(g);
         }
+        for(Pickup p : pickups) {
+            p.draw(g);
+        }
         for(ExplosionEffect e : explosions) {
             e.draw(g);
         }
-        for(Pickup p : pickups) {
-            p.draw(g);
+        for(Effect e : effects) {
+            e.draw(g);
         }
         getGraphics().drawImage(buffer, 0, 0, null);    
     }
     
+    public void refundUpgrades() {
+        upgrades.reset();
+        upgradeTokens = maxTokens;
+    }
+    
+    public void subTokens(int n) {
+        upgradeTokens -= n;
+    }
+    
+    public int getTokens() {
+        return upgradeTokens;
+    }
+    
+    public UpgradeList getUpgrades() {
+        return upgrades;
+    }
+    
+    public boolean getClick() {
+        return click;
+    }
+    
+    public int getMouseX() {
+        return mouseX;
+    }
+    
+    public int getMouseY() {
+        return mouseY;
+    }
+    
     public void addPickup(Pickup p) {
         pickups.add(p);
+    }
+    
+    public void addEffect(Effect e) {
+        effects.add(e);
     }
     
     public void addExplosion(ExplosionEffect e) {
@@ -205,7 +382,7 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     }
     
     public void addNewProjectile(Projectile p) {
-        projectiles.add(p);
+        projQueue.add(p);
     }
     
     public void addNewEnemy(KillableEntity e) {

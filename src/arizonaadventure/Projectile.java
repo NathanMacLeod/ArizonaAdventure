@@ -15,7 +15,7 @@ public class Projectile extends MoveingEntity {
     protected Vector2D velocity;
     private boolean isFriendly;
     private double damage;
-    private boolean collided = false;
+    protected boolean expired = false;
     private double size;
     
     public Projectile(double x, double y, ArrayList<Vector2D> hitbox, Vector2D velocity, double damage, double size, boolean isFriendly) {
@@ -26,11 +26,11 @@ public class Projectile extends MoveingEntity {
         this.size = size;
     }
     
-    public boolean hasCollided() {
-        return collided;
+    public boolean expired() {
+        return expired;
     }
     
-    private void addExplosions(ArizonaAdventure game) {
+    protected void addExplosion(ArizonaAdventure game) {
         game.addExplosion(new ExplosionEffect(x, y, (int) (size * 1), 0.1));
     }
     
@@ -39,8 +39,8 @@ public class Projectile extends MoveingEntity {
             for(KillableEntity enemy : game.getEnemies()) {
                 if(hitboxesIntersecting(enemy)) {
                     enemy.takeDamage(damage);
-                    collided = true;
-                    addExplosions(game);
+                    expired = true;
+                    addExplosion(game);
                     return true;
                 }
             }
@@ -49,8 +49,8 @@ public class Projectile extends MoveingEntity {
             Player player = game.getPlayer();
             if(hitboxesIntersecting(player)) {
                 player.takeDamage(damage);
-                collided = true;
-                addExplosions(game);
+                expired = true;
+                addExplosion(game);
                 return true;
             }
         }

@@ -28,7 +28,7 @@ public class RocketEnemy extends KillableEntity {
     
     public RocketEnemy(double x, double y) {
         super(x, y, generateSquareHitbox(65, 50), 420, 70);
-        speed = 75;
+        speed = 115;
         rocketFire = new CooldownTimer(0.75);
         rocketCount = 0;
         timeTraveled = 0;

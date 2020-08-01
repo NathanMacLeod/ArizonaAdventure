@@ -11,7 +11,7 @@ import java.util.ArrayList;
  * @author macle
  */
 public class LobProjectile extends Projectile {
-    private static double gravity = 250;
+    private static double gravity = 350;
     
     //Projectile(double x, double y, ArrayList<Vector2D> hitbox, Vector2D velocity, double damage, double size, boolean isFriendly)
     public LobProjectile(double x, double y, Vector2D velocity, double width, double height, double damage, double size, boolean isFriendly) {

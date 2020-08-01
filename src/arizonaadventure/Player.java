@@ -16,30 +16,46 @@ import java.awt.Graphics2D;
 public class Player extends KillableEntity {   
     private static Sprite sprite = null;
     private static Sprite halfSprite = null;
+    private static boolean spriteMini;
     
-    static double width = 90;
-    static double height = 15;
+    private static double defWidth = 90;
+    private static double defHeight = 15;
+    private static double mini = 0.75;
     
-    double hVel;
-    double vVel;
-    double bulletVel;
-    CooldownTimer primaryFire;
-    CooldownTimer rocketFire;
-    CooldownTimer invincibleTime;
+    private double width;
+    private double height;
+    private double hVel;
+    private double vVel;
+    private double bulletVel;
+    private int nProjectiles;
+    private CooldownTimer primaryFire;
+    private CooldownTimer rocketFire;
+    private CooldownTimer invincibleTime;
     
+    private boolean hasRockets;
+    private boolean zoomOut;
+    private boolean zoomIn;
+    private double currSpeed;
     private boolean invincible;
     private double maxHP;
     
-    public Player(double x, double y) {
-        super(x, y, generateSquareHitbox(width, height), 100, 70);
-        maxHP = 100;
-        hVel = 250;
-        vVel = 250;
+    public Player(double x, double y, UpgradeList upgrades) {
+        super(x, y, generateSquareHitbox(defWidth * ((upgrades.miniShip)? mini : 1), defHeight * ((upgrades.miniShip)? mini : 1)), 100, 70);
+        width = defWidth * ((upgrades.miniShip)? mini : 1);
+        height = defHeight * ((upgrades.miniShip)? mini : 1);
+        maxHP = 100 * (1 + 0.25 * upgrades.health) * ((upgrades.miniShip)? 0.7 : 1);
+        hp = maxHP;
+        hVel = 270;
+        vVel = hVel;
         bulletVel = 600;
-        primaryFire = new CooldownTimer(3);
-        rocketFire = new CooldownTimer(0.33);
+        nProjectiles = 1 + upgrades.fireVolume;
+        double fireRate = 3 + 0.33 * upgrades.fireRate;
+        primaryFire = new CooldownTimer(fireRate);
+        rocketFire = new CooldownTimer(fireRate * 2/30);
         invincibleTime = new CooldownTimer(0.8);
-        if(sprite == null) {
+        hasRockets = upgrades.missiles;
+        if(sprite == null || upgrades.miniShip != spriteMini) {
+            spriteMini = upgrades.miniShip;
             sprite = new Sprite("arizona15.png", (int) (width * 1.25));
             halfSprite = new Sprite("arizona15trans.png", (int) (width * 1.25));
         }
@@ -66,11 +82,18 @@ public class Player extends KillableEntity {
     private void shoot(double timePassed, ArizonaAdventure game) {
         primaryFire.updateTimer(timePassed);
         if(primaryFire.tryToFire()) {
-            game.addNewProjectile(new PrimaryFireBullet(x + width/2.0, y, 20));
+            double bulletSpacing = 25;
+            double space = nProjectiles * bulletSpacing;
+            
+            for(int i = 0; i < nProjectiles; i++) {
+                game.addNewProjectile(new PrimaryFireBullet(x + width/2.0, y + space * (-0.5 + (double)(i + 1)/(nProjectiles + 1)), 20));
+            }
         }
-        rocketFire.updateTimer(timePassed);
-        if(rocketFire.tryToFire()) {
-            //game.addNewProjectile(new PlayerRocket(x, y, 80));
+        if(hasRockets) {
+            rocketFire.updateTimer(timePassed);
+            if(rocketFire.tryToFire()) {
+                game.addNewProjectile(new PlayerRocket(x, y, 80));
+            }
         }
     }
     
@@ -88,10 +111,7 @@ public class Player extends KillableEntity {
             if(this.hitboxesIntersecting(p)) {
                 p.setConsumed();
                 if(p instanceof HealthPickup) {
-                    hp += 50;
-                    if (hp >= maxHP) {
-                        hp = maxHP;
-                    }
+                    hp = maxHP;
                 }
             }
         }
@@ -129,10 +149,40 @@ public class Player extends KillableEntity {
         drawHP(g);
     }
     
+    public void startZoom() {
+        zoomOut = true;
+        currSpeed = -1000;
+    }
+    
+    public void startZoomIn() {
+        zoomIn = true;
+        currSpeed = 100;
+    }
+    
+    private void zoomIn(double timePassed) {
+        moveEntity(currSpeed * timePassed, 0, 0);
+        if (x >= 100) {
+            zoomIn = false;
+        }
+    }
+    
+    private void zoom(double timePassed) {
+        currSpeed += timePassed * 2000;
+        moveEntity(currSpeed * timePassed, 0, (currSpeed < 0)? 0 : currSpeed * timePassed / 50);
+    }
+    
     public void update(double timePassed, ArizonaAdventure game) {
-        takeUserInput(timePassed, game);
-        checkForCollisions(game);
-        shoot(timePassed, game);
+        if(zoomOut) {
+            zoom(timePassed);
+        }
+        else if(zoomIn) {
+            zoomIn(timePassed);
+        }
+        else {
+            takeUserInput(timePassed, game);
+            shoot(timePassed, game);
+            checkForCollisions(game);
+        }    
         if(invincible) {
             invincibleTime.updateTimer(timePassed);
             if(invincibleTime.tryToFire()) {
