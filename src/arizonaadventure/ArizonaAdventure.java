@@ -29,7 +29,7 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     private int mouseX, mouseY;
     private int maxLevel;
     private UpgradeList upgrades;
-    private int upgradeTokens = 250;
+    private int upgradeTokens = 25;
     private int maxTokens = 25;
     
     private boolean playerDead;

@@ -65,7 +65,7 @@ public class MoveingEntity implements Drawable, Updatable {
         }
         return max;
     }
-    
+
     public double getRadius() {
         return sizeRadius;
     }

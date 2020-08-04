@@ -21,6 +21,13 @@ public class BasicEnemyBullet extends Projectile {
         this.sprite = sprite;
     }
     
+    public BasicEnemyBullet(double x, double y, double width, double height, Vector2D velocity, double damage, Sprite sprite) {
+        super(x, y, generateSquareHitbox(width, height), velocity, damage, width, false);
+        double orientation = velocity.getAngle();
+        moveEntity(0, 0, orientation);
+        this.sprite = sprite;
+    }
+    
     public void draw(Graphics2D g) {
         //super.draw(g);
         sprite.draw(g, x, y, orientation);

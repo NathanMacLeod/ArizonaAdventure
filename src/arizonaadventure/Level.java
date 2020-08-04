@@ -25,8 +25,8 @@ public abstract class Level implements Updatable, Drawable {
     private boolean zoom;
     private boolean playerDead;
     
-    private Boss boss;
-    private boolean bossFight;
+    protected Boss boss;
+    protected boolean bossFight;
     private boolean bossDead;
     
     protected int backgroundWidth;
@@ -34,7 +34,7 @@ public abstract class Level implements Updatable, Drawable {
     protected BufferedImage middleground;
     protected BufferedImage background;
     
-    private double panSpeed;
+    protected double panSpeed;
     protected double backMultiplier = 0.2;
     protected double midMultiplier = 0.27;
     
@@ -43,6 +43,7 @@ public abstract class Level implements Updatable, Drawable {
     private double backX;
     
     public Level(int width, int height) {
+        panSpeed = 600;
         setWaves();
         preloadSprites();
         boss = null;
@@ -54,8 +55,7 @@ public abstract class Level implements Updatable, Drawable {
         this.height = height;
         postBossWait = new CooldownTimer(1.0/5);
         postBossWait.resetTimer();
-        zoom = false;
-        panSpeed = 600;
+        zoom = false;  
         playerDead = false;
     }
     
@@ -148,7 +148,9 @@ public abstract class Level implements Updatable, Drawable {
             }
         }
         else if(bossFight) {
-            boss.update(timePassed, game);
+            if(!(boss instanceof KillableEntity)) {
+                boss.update(timePassed, game);
+            }
             if(boss.bossDefeated()) {
                 bossDead = true;
             }

@@ -34,12 +34,12 @@ public class SubBoss extends KillableEntity implements Boss {
     private CooldownTimer explosionTimer;
     private double life = 0;
     private final double shakeMagnitude = 10;
-    private final double shakePeriod = 6;
+    private final double shakePeriod = 3;
     
     private State state;
     private final double surfaceY;
     private final double submergeY;
-    private final double speed = 20;
+    private final double speed = 40;
     
     private CooldownTimer gunFire;
     private CooldownTimer surfaceTime;
@@ -80,12 +80,12 @@ public class SubBoss extends KillableEntity implements Boss {
         usedAttacks = new boolean[4];
         moveEntity(690, submergeY, 0);
         state = State.Surfacing;
-        surfaceTime = new CooldownTimer(1.0/40);
-        gunFire = new CooldownTimer(0.37);
-        salvoTimer = new CooldownTimer(1.0/3);
-        missileRate = new CooldownTimer(2);
+        surfaceTime = new CooldownTimer(1.0/20);
+        gunFire = new CooldownTimer(0.74);
+        salvoTimer = new CooldownTimer(2.0/3);
+        missileRate = new CooldownTimer(4);
         nExplosions = 50;
-        explosionTimer = new CooldownTimer(7);
+        explosionTimer = new CooldownTimer(14);
         game.addNewEnemy(this);
     }
     

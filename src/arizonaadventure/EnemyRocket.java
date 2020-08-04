@@ -12,7 +12,8 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class EnemyRocket extends Projectile {
-     private static Sprite sprite = null;
+    private static Sprite masterSprite = null;
+    private Sprite sprite;
     
     private boolean lostLock;
     private double speed;
@@ -24,12 +25,25 @@ public class EnemyRocket extends Projectile {
         super(x, y, generateSquareHitbox(30, 8), new Vector2D(0, 0), damage, 40, false);
         speed = 300;
         turnRate = 0.75;
-        lockAng = Math.PI/9;
+        lockAng = Math.PI/2;
+        cosLockAng = Math.cos(lockAng);
         this.orientation = orientation;
         
         if(sprite == null) {
-            sprite = new Sprite("pepsirocket.png", (int)(25 * 4));
+            masterSprite = new Sprite("pepsirocket.png", (int)(25 * 4));
         }
+        sprite = masterSprite;
+    }
+    
+    public EnemyRocket(double x, double y, double orientation, double speed, double lockAng, double turnRate, double damage, Sprite sprite) {
+        super(x, y, generateSquareHitbox(30, 8), new Vector2D(0, 0), damage, 40, false);
+        this.speed = speed;
+        this.turnRate = turnRate;
+        //this.lockAng = lockAng;
+        cosLockAng = Math.cos(lockAng);
+        this.orientation = orientation;
+        
+        this.sprite = sprite;
     }
     
     private double reactToLockedTarget(double timePassed, ArizonaAdventure game) {

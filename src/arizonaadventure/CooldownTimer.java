@@ -28,8 +28,16 @@ public class CooldownTimer {
         }
     } 
     
+    public double getTimeElapsed() {
+        return cooldownTime - currentTime;
+    }
+    
     public boolean readyToFire() {
         return currentTime == 0;
+    }
+    
+    public void setTime(double t) {
+        currentTime = t;
     }
     
     public void updateTimer(double timePassed) {

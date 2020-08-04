@@ -51,6 +51,12 @@ public class Sprite {
         return sprite;
     }
     
+    public void flip() {
+        BufferedImage newImage = new BufferedImage(sprite.getWidth(), sprite.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        newImage.getGraphics().drawImage(sprite, 0, 0, sprite.getWidth(), sprite.getHeight(), sprite.getWidth(), 0, 0, sprite.getHeight(), null);
+        sprite = newImage;
+    }
+    
     public void draw(Graphics2D g, double x, double y, double orientation) {
         AffineTransform transformation = new AffineTransform();
         transformation.translate(x, y);
