@@ -14,11 +14,17 @@ public class KillableEntity extends MoveingEntity {
     
     protected double hp;
     private double size;
+    protected boolean nonPlayerCollidable;
     
     public KillableEntity(double x, double y, ArrayList<Vector2D> hitbox, double hp, double size) {
         super(x, y, hitbox, 0);
         this.hp = hp;
         this.size = size;
+        nonPlayerCollidable = false;
+    }
+    
+    public boolean getNonPlayerCollidable() {
+        return nonPlayerCollidable;
     }
     
     public void explode(ArizonaAdventure game) {

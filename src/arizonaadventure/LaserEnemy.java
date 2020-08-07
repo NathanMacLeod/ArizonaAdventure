@@ -92,7 +92,7 @@ public class LaserEnemy extends KillableEntity {
             Vector2D relPosUnit = new Vector2D(player.getX() - x, player.getY() - y).getUnitVector();
 
             double cosAng = relPosUnit.dot(orientationVector);
-            if (cooldown.readyToFire() && cosAng > fireTolCos) { //lost lock
+            if (cooldown.readyToFire() && cosAng > fireTolCos) {
                 charging = true;
                 chargeTime.resetTimer();
                 return;

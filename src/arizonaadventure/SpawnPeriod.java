@@ -18,6 +18,7 @@ public class SpawnPeriod implements Updatable {
         1,
         1,
         1,
+        1,
         1
     };
     
@@ -91,6 +92,9 @@ public class SpawnPeriod implements Updatable {
                     break;
                 case 6:
                     enemy = new AuraEnemy(0, 0);
+                    break;
+                case 7:
+                    enemy = new FlyingTank(0, 0);
                     break;
             }
             if(y == -1) {

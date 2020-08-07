@@ -17,8 +17,10 @@ import java.awt.Graphics2D;
  */
 public class Level3 extends Level{
     
-    private SpikeObstacle finalSpike;
-    private boolean bossSecondPhase = false;
+    private SpikeObstacle mechDisappearSpike;
+    private SpikeObstacle mechReappearSpike;
+    private boolean bossHide = false;
+    private boolean bossReapper = false;
     
     public Level3(int width, int height) {
         super(width, height);
@@ -69,7 +71,6 @@ public class Level3 extends Level{
         
         x += width * 4;
         //pattern;
-        
         for(int i = 0; i < 3; i++) {
             new SpikeObstacle(x, game, 0);
             x += width;
@@ -87,29 +88,49 @@ public class Level3 extends Level{
         }
         
         x += width * 3;
-        finalSpike = new SpikeObstacle(x, game, 0);
+        mechDisappearSpike = new SpikeObstacle(x, game, 0);
+         x += width;
+        
+        //pattern;
+        for(int i = 0; i < 7; i++) {
+            new SpikeObstacle(x, game, 3);
+            x += width;
+            new SpikeObstacle(x, game, 0);
+            x += width;
+        }
+
+        mechReappearSpike = new SpikeObstacle(x, game, 3);
     }
     
     public void update(double timePassed, ArizonaAdventure game) {
         super.update(timePassed, game);
-        if(bossFight && !bossSecondPhase && finalSpike.getX() < game.getGameWidth()/2.0) {
-            game.addPickup(new HealthPickup(game.getGameWidth() + 170, game.getGameHeight()/2.0));
+        if(bossFight && !bossHide && mechDisappearSpike.getX() < game.getGameWidth()/2.0) {
             ((MechBoss) boss).dissapearToLeft();
-            bossSecondPhase = true;
+            bossHide = true;
         } 
+        else if(bossFight && !bossReapper && mechReappearSpike.getX() < game.getGameWidth()/3.0) {
+            game.addPickup(new HealthPickup(game.getGameWidth() + 170, game.getGameHeight()/2.0));
+            ((MechBoss) boss).appearOnRight(game);
+            bossReapper = true;
+        }
     }
     
     protected void setWaves() {
-        waves = new ArrayList();
-        //waves.add(new SpawnPeriod(60, 2, new int[] {20, 25, 5, 4, 0, 10, 100}));
-        //waves.add(new SpawnPeriod(50, 3, new int[] {9, 16, 2, 0, 0, 7}));
-        //waves.add(new SpawnPeriod(4, 1, new int[] {0, 0, 0, 3, 0, 0}));
-        //waves.add(new SpawnPeriod(70, 2.5, new int[] {8, 16, 4, 3, 0, 7}));
-        //waves.add(new SpawnPeriod(6, 1, new int[] {0, 0, 0, 0, 1, 0}));
+        waves = new ArrayList(); 
+        //waves.add(new SpawnPeriod(5, 1, new int[] {0, 0, 0, 0, 0, 0, 0, 2}));
+        waves.add(new SpawnPeriod(60, 2, new int[] {20, 25, 5, 4, 0, 10, 0}));
+        waves.add(new SpawnPeriod(40, 2, new int[] {7, 16, 4, 2, 0, 6, 9}));
+        waves.add(new SpawnPeriod(1, 1, new int[] {0, 0, 0, 0, 0, 0, 0, 2}));
+        waves.add(new SpawnPeriod(3, 1, new int[] {0, 0, 0, 0, 1, 0, 0, 0}));
+        waves.add(new SpawnPeriod(75, 2.2, new int[] {8, 14, 4, 2, 0, 6, 5, 2}));
+        waves.add(new SpawnPeriod(3, 1, new int[] {0, 0, 0, 0, 1, 0, 0, 0}));
+        waves.add(new SpawnPeriod(3, 8, new int[] {0, 0, 0, 0, 0, 0, 0, 0}));
     }
     
     protected Boss spawnBoss(ArizonaAdventure game) {
         spawnSpikes(game);
-        return new MechBoss(game);
+        MechBoss b = new MechBoss(game);
+        //b.appearOnRight(game);
+        return b;
     }
 }

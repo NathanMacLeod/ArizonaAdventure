@@ -35,6 +35,7 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     private boolean playerDead;
     private Player player;
     private ArrayList<KillableEntity> enemies;
+    private ArrayList<KillableEntity> enemyQueue;
     private ArrayList<Projectile> projectiles;
     private ArrayList<Projectile> projQueue;
     private ArrayList<ExplosionEffect> explosions;
@@ -64,12 +65,15 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         frame.setVisible(true);
         upgrades = new UpgradeList();
         token = new Sprite("token.png", tokenSize);
+        
         enemies = new ArrayList();
+        enemyQueue = new ArrayList();
         projectiles = new ArrayList();
         explosions = new ArrayList();
         effects = new ArrayList();
         pickups = new ArrayList();
         projQueue = new ArrayList();
+        
         mouseX = 0;
         mouseY = 0;
         maxLevel = 3;
@@ -234,10 +238,11 @@ public class ArizonaAdventure extends JPanel implements Runnable {
             player.update(timePassed, this);
         }
         
-        for(Projectile p: projQueue) {
-            projectiles.add(p);
-        }
+        projectiles.addAll(projQueue);
         projQueue.clear();
+        
+        enemies.addAll(enemyQueue);
+        enemyQueue.clear();
         
         for(KillableEntity enemy : enemies) {
             enemy.update(timePassed, this);
@@ -386,7 +391,7 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     }
     
     public void addNewEnemy(KillableEntity e) {
-        enemies.add(e);
+        enemyQueue.add(e);
     }
     
     public ArrayList<KillableEntity> getEnemies() {

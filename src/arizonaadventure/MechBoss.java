@@ -5,7 +5,10 @@
  */
 package arizonaadventure;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
+import javafx.concurrent.Worker;
+import java.util.ArrayList;
 /**
  *
  * @author macle
@@ -17,18 +20,33 @@ public class MechBoss extends KillableEntity implements Boss {
      private static double spawnX = -size;
     private static double width = size / 4.5;
     private static double height = size / 1.7;
+    private static double flyBoxHeight = height/2.0;
     private static double strideWidth = size * 30.0 / 500;
     private static double strideHeight = size * 50.0 / 500;
     private static double stridePeriod = 0.75;
+    private static double flyMagnitude = size / 6.0;
+    private static double flyPeriod = 3.5;
     private static double pausePeriod = 0.5;
     private static double gunR = size * 250.0 / 500;
     private static double gunA = -Math.PI / 32;
     private static double targetX = 70;
     private static double targetXLeft = 800;
-    private boolean firstWalkOn = true;
-    private boolean firstWalkOnRight = false;
-    private boolean dissapearToLeft = false;
     
+    private static double buddyWidth = 40;
+    private static double buddyHeight = 40;
+    private static double buddySpinRate = 0.25;
+    private static double buddyRadius = 150;
+    private static double buddyBirthTime = 2;
+    private static double laserWidth = 50;
+    private static double buddyBallSpeed = 215;
+    private static double buddyBallRadius = 45;
+    private static double buddyBallFormTime = 1.5;
+    private double buddyBallT;
+    private double buddyDCos;
+    private double buddyDSin;
+    private Vector2D buddyBallCoord;
+    private Vector2D buddyBallV;
+    private ArrayList<LaserBuddy> buddyBall;
     
     private static double walkSpeed = 2 * strideWidth / (stridePeriod + pausePeriod);
     private double baseY;
@@ -45,6 +63,7 @@ public class MechBoss extends KillableEntity implements Boss {
     private double legRestX;
     private double legRestY;
     private double gunAng;
+    private double buddyAng;
     
     private static Sprite headS;
     private static Sprite gunS;
@@ -57,15 +76,23 @@ public class MechBoss extends KillableEntity implements Boss {
     private static Sprite bomb;
     private static Sprite shrapnel;
     private static Sprite rocket;
+    private static Sprite hoverHead;
+    private static Sprite laserCan;
+    private static Sprite laserBolt;
     
     private GunState gunState;
-    private GunState prevAttack;
+    private BossState state;
+    private BuddyPattern buddyState;
     
     private static int nShots = 4;
     private int shotCount;
     private CooldownTimer fireTimer;
     private CooldownTimer reloadTimer;
     private CooldownTimer slowAttack;
+    private CooldownTimer buddyReleaseRate;
+    private CooldownTimer buddyCooldown;
+    private CooldownTimer quickBuddyFireRate;
+    private CooldownTimer laserPatternRate;
     private boolean canFlash = true;
     boolean onRight;
     
@@ -76,7 +103,15 @@ public class MechBoss extends KillableEntity implements Boss {
     private double shotDCos;
     private double shotDSin;
     private int nShotProj = 8;
+    private int buddyI;
+    private int nPatternRepetitions;
     
+    private boolean releaseBuddies;
+    private int nBuddies;
+    private ArrayList<LaserBuddy> buddies;
+    
+    private int nExplosions;
+    private CooldownTimer explosionTimer;
     
     public MechBoss(ArizonaAdventure game) {
         super(spawnX, 420, generateSquareHitbox(width, height), startingHP, size);
@@ -90,11 +125,21 @@ public class MechBoss extends KillableEntity implements Boss {
         rocketX = size * 20.0 / 500;
         rocketY = -size * 130.0 / 500;
         
-        prevAttack = GunState.Reload;
+        nExplosions = 50;
+        explosionTimer = new CooldownTimer(14);
+        
+        state = BossState.FirstWalkOn;
         gunState = GunState.Reload;
         fireTimer = new CooldownTimer(1);
         reloadTimer = new CooldownTimer(0.56);
         slowAttack = new CooldownTimer(0.4);
+        buddyReleaseRate = new CooldownTimer(1.5);
+        buddyCooldown = new CooldownTimer(1.0/8);
+        quickBuddyFireRate = new CooldownTimer(2);
+        laserPatternRate = new CooldownTimer(0.25);
+        buddies = new ArrayList();
+        buddyBall = new ArrayList();
+        nBuddies = 8;
         
         shotConeCos = Math.cos(-shotCone/2.0);
         shotConeSin = Math.sin(-shotCone/2.0);
@@ -106,12 +151,26 @@ public class MechBoss extends KillableEntity implements Boss {
         game.addNewEnemy(this);
     }
     
+    private enum BuddyPattern {
+        Cooldown, QuickLaser, LaserPattern, BuddyBall
+    }
+    
     private enum GunState {
         Reload, Slug, Shotgun, Bomb, Rocket;
     }
     
+    private enum BossState {
+        FirstWalkOn, FirstWalkOnRight, DissapearToLeft, Walk, Fly
+    }
+    
     public void dissapearToLeft() {
-        dissapearToLeft = true;
+        state = BossState.DissapearToLeft;
+    }
+    
+    public void appearOnRight(ArizonaAdventure game) {
+        flip();
+        moveEntity(game.getGameWidth() - spawnX - x, 0, 0);
+        state = BossState.FirstWalkOnRight;
     }
     
     public static double getWalkSpeed() {
@@ -129,6 +188,9 @@ public class MechBoss extends KillableEntity implements Boss {
         bomb = new Sprite("gfueldoom.png", 60);
         shrapnel = new Sprite("gfuelcanred.png", 30);
         rocket = new Sprite("gfuelrocket.png", 130);
+        hoverHead = new Sprite("mechheadfloating.png", (int) (size / 1.25));
+        laserCan = new Sprite("ringedcan.png", (int) (buddyWidth * 1.8));
+        laserBolt = new Sprite("laserbolt.png", 50);
     }
     
     private void flip() {
@@ -154,7 +216,7 @@ public class MechBoss extends KillableEntity implements Boss {
     }
     
     public boolean bossDefeated() {
-        return hp <= 0;
+        return isDead();
     }
     
     private class BombProjectile extends LobProjectile {
@@ -208,11 +270,20 @@ public class MechBoss extends KillableEntity implements Boss {
             }
         }
     
-    public void shoot(double timePassed, ArizonaAdventure game) {
+    private void aim(ArizonaAdventure game) {
+        Player p = game.getPlayer();
+        if(!onRight) {
+            gunAng = new Vector2D(p.x - x - gunX, p.y - baseY - gunY).getAngle();
+        }
+        else {
+            gunAng = (gunState == GunState.Bomb)? Math.PI * 1.0/4 : Math.PI + new Vector2D(p.x - x - gunX, p.y - baseY - gunY).getAngle();
+        }
+    }
+    
+    private void shoot(double timePassed, ArizonaAdventure game) {
         Player p = game.getPlayer();
 
         if(!onRight) {
-            gunAng = new Vector2D(p.x - x - gunX, p.y - baseY - gunY).getAngle();
             slowAttack.updateTimer(timePassed);
             if(slowAttack.tryToFire()) {
                 double barrelX = x + headX + gunX + gunR * Math.cos(gunAng - gunA);
@@ -222,8 +293,6 @@ public class MechBoss extends KillableEntity implements Boss {
             }
             return;
         }
-        
-        gunAng = (gunState == GunState.Bomb)? Math.PI * 1.0/4 : Math.PI + new Vector2D(p.x - x - gunX, p.y - baseY - gunY).getAngle();
         
         fireTimer.updateTimer(timePassed);
 
@@ -248,8 +317,7 @@ public class MechBoss extends KillableEntity implements Boss {
                             newAttack = GunState.Rocket;
                             break;
                     }
-                } while(newAttack == prevAttack);
-                prevAttack = newAttack;
+                } while(newAttack == gunState);
                 gunState = newAttack;
             }
         }
@@ -312,99 +380,625 @@ public class MechBoss extends KillableEntity implements Boss {
         }
     }
     
-    public void move(double timePassed, ArizonaAdventure game) {
+    private void move(double timePassed, ArizonaAdventure game) {
         
-        if(dissapearToLeft) {
-            foreLegY = legRestY;
-            rearLegY = legRestY;
-            moveEntity(-walkSpeed * timePassed, 0, 0);
-            if(x < spawnX/2.0) {
-                flip();
-                moveEntity(game.getGameWidth() - spawnX, 0, 0);
-                dissapearToLeft = false;
-                firstWalkOnRight = true;
-            }
-            return;
-        }
-        else if(firstWalkOnRight) {
-            foreLegY = legRestY;
-            rearLegY = legRestY;
-            moveEntity(-walkSpeed * timePassed, 0, 0);
-            if(x < targetXLeft) {
-                firstWalkOnRight = false;
-            }
-            return;
-        }
-        
-        double t = life % (stridePeriod * 2 + pausePeriod * 2);
-        double effectiveT ;
-        if(t > stridePeriod && t < stridePeriod + pausePeriod) {
-            effectiveT = stridePeriod;
-        }
-        else if(t > stridePeriod + pausePeriod && t < stridePeriod * 2 + pausePeriod) {
-            effectiveT = t - pausePeriod;
-        }
-        else if(t > stridePeriod * 2 + pausePeriod) {
-            effectiveT = stridePeriod * 2;
-        }
-        else {
-            effectiveT = t;
-        }
-        
-        double foreT = effectiveT * Math.PI / stridePeriod;
-        double rearT = Math.PI + effectiveT * Math.PI / stridePeriod;
-        
-        double foreCos = Math.cos(foreT);
-        double foreSin = Math.sin(foreT);
-        double rearCos = Math.cos(rearT);
-        double rearSin = Math.sin(rearT);
-        
-        foreLegX = legRestX + strideWidth * foreCos;
-        rearLegX = legRestX + strideWidth * rearCos;
-        foreLegY = legRestY + strideHeight/2.0 * ((foreSin < 0)? 0 : foreSin);
-        rearLegY = legRestY + strideHeight/2.0 * ((rearSin < 0)? 0 : rearSin);
-        
-        baseY = y - strideHeight/2.0 * Math.abs(foreSin);
-        double xV = Math.abs(foreSin) * strideWidth * Math.PI/stridePeriod;
-        
-        if(firstWalkOn && x < targetX) {
-            moveEntity(xV * timePassed, 0, 0);
-            if(x > targetX) {
-                firstWalkOn = false;
-            }
-        }
-        else {
-            moveEntity((xV - walkSpeed) * timePassed, 0, 0);
-        }
+        switch(state) {
+            
+            case DissapearToLeft:
+                foreLegY = legRestY;
+                rearLegY = legRestY;
+                moveEntity(-walkSpeed * timePassed, 0, 0);
+                break;
+                
+            case FirstWalkOnRight:
+                foreLegY = legRestY;
+                rearLegY = legRestY;
+                moveEntity(-walkSpeed * timePassed, 0, 0);
+                if(x < targetXLeft) {
+                    state = BossState.Walk;
+                    
+                    //FOR TESTING
+                    //startFlying(game);
+                }
+                break;
+            
+            case Walk:
+            case FirstWalkOn:
+                double t = life % (stridePeriod * 2 + pausePeriod * 2);
+                double effectiveT ;
+                if(t > stridePeriod && t < stridePeriod + pausePeriod) {
+                    effectiveT = stridePeriod;
+                }
+                else if(t > stridePeriod + pausePeriod && t < stridePeriod * 2 + pausePeriod) {
+                    effectiveT = t - pausePeriod;
+                }
+                else if(t > stridePeriod * 2 + pausePeriod) {
+                    effectiveT = stridePeriod * 2;
+                }
+                else {
+                    effectiveT = t;
+                }
 
+                double foreT = effectiveT * Math.PI / stridePeriod;
+                double rearT = Math.PI + effectiveT * Math.PI / stridePeriod;
+
+                double foreCos = Math.cos(foreT);
+                double foreSin = Math.sin(foreT);
+                double rearCos = Math.cos(rearT);
+                double rearSin = Math.sin(rearT);
+
+                foreLegX = legRestX + strideWidth * foreCos;
+                rearLegX = legRestX + strideWidth * rearCos;
+                foreLegY = legRestY + strideHeight/2.0 * ((foreSin < 0)? 0 : foreSin);
+                rearLegY = legRestY + strideHeight/2.0 * ((rearSin < 0)? 0 : rearSin);
+
+                baseY = y - strideHeight/2.0 * Math.abs(foreSin);
+                double xV = Math.abs(foreSin) * strideWidth * Math.PI/stridePeriod;
+
+                if(state == BossState.FirstWalkOn && x < targetX) {
+                    moveEntity(xV * timePassed, 0, 0);
+                    if(x > targetX) {
+                        state = BossState.Walk;
+                    }
+                }
+                else {
+                    moveEntity((xV - walkSpeed) * timePassed, 0, 0);
+                }
+                break;
+            case Fly:
+                double yV = flyMagnitude * 2 * Math.PI * Math.cos(2 * Math.PI * life / flyPeriod) / flyPeriod;
+                moveEntity(0, yV * timePassed, 0);
+                break; 
+        }
+    }
+    
+    private enum BuddyState {
+        Circling, TravelToTarget, AtTarget, Return, Born
+    }
+    
+    private void startFlying(ArizonaAdventure game) {
+        game.addPickup(new HealthPickup(game.getGameWidth() + 170, game.getGameHeight()/2.0));
+        state = BossState.Fly;
+        life = 0;
+        hp = startingHP;
+        moveEntity(0, game.getGameHeight() / 2.0 - y, 0);
+        updateHitbox(generateSquareHitbox(width, flyBoxHeight));
+        releaseBuddies(8);
+        buddyState = BuddyPattern.Cooldown;
+        buddyCooldown.resetTimer();
+    }
+    
+    private class LaserBuddy extends KillableEntity {
+        
+        private CooldownTimer fire;
+        private BuddyState state;
+        private double life;
+        private double accelX;
+        private double accelY;
+        private double targetX;
+        private double targetY;
+        private double timeTraveled;
+        private double travelTime;
+        private boolean chargeLaser;
+        private boolean fireLaser;
+        private double laserTime;
+        private int number;
+        
+        public LaserBuddy(int n) {
+            super(MechBoss.this.x, MechBoss.this.y, generateSquareHitbox(buddyWidth, buddyHeight), 1200, 60);
+            state = BuddyState.Born;
+            fire = new CooldownTimer(0.3);
+            nonPlayerCollidable = true;
+            life = 0;
+            number = n;
+        }  
+        
+        public void accelerateToCoord(double tX, double tY, double travelTime, boolean returnTrip) {
+            state = (returnTrip)? BuddyState.Return : BuddyState.TravelToTarget;
+            targetX = tX;
+            targetY = tY;
+            this.travelTime = travelTime;
+            double dY = tY - y;
+            double dX = tX - x;
+            accelY = dY * 6.0 / (travelTime * travelTime);
+            accelX = dX * 6.0 / (travelTime * travelTime);
+            timeTraveled = 0;
+        }
+        
+        public void teleportToCoord(double tX, double tY) {
+            moveEntity(tX - x, tY - y, 0);
+        }
+        
+        private void returnToCircle(ArizonaAdventure game) {
+            Vector2D coord = getBuddyOrbitCoord(number, 1.5, game);
+            accelerateToCoord(coord.x, coord.y, 1.5, true);
+            fireLaser = false;
+            chargeLaser = false;
+        }
+        
+        public void setOrientation(double theta) {
+            moveEntity(0, 0, theta - orientation);
+        }
+        
+        public void update(double timePassed, ArizonaAdventure game) {
+            life += timePassed;
+            Player p = game.getPlayer();
+            
+            if(state != BuddyState.AtTarget) {
+                double newOrientation = new Vector2D(p.x - x, p.y - y).getAngle();
+                moveEntity(0, 0, newOrientation - orientation);
+            }
+            
+            switch(state) {
+                case Born:
+                    if(life >= buddyBirthTime) {
+                        state = BuddyState.Circling;
+                    }
+                    break;
+                case Circling:
+                    if(MechBoss.this.buddyState == BuddyPattern.Cooldown) {
+                        fire.updateTimer(timePassed);
+                        if(fire.tryToFire()) {
+                            Vector2D dir = new Vector2D(p.x - x, p.y - y).getUnitVector().scale(300);
+                            game.addNewProjectile(new BasicEnemyBullet(x, y, dir, laserBolt));
+                        }
+                    }
+                    break;
+                case TravelToTarget:
+                case Return:
+                    timeTraveled += timePassed;
+                    double dy = timePassed * timeTraveled * accelY * (1 -timeTraveled / travelTime); 
+                    double dx = timePassed * timeTraveled * accelX * (1 -timeTraveled / travelTime); 
+                    
+                    if(timeTraveled >= travelTime) {
+                        dx = targetX - x;
+                        dy = targetY - y;
+                        if(state == BuddyState.Return) {
+                            state = BuddyState.Circling;
+                        }
+                        else {
+                            laserTime = 0;
+                            state = BuddyState.AtTarget;
+                        }
+                    }
+                    
+                    moveEntity(dx, dy, 0);
+                    break;
+                case AtTarget:
+                    switch(MechBoss.this.buddyState) {
+                        case QuickLaser:
+                            laserTime += timePassed;
+                            if(laserTime <= 0.75) {
+                                chargeLaser = true;
+                            }
+                            else if(laserTime <= 1.5) {
+                                chargeLaser = false;
+                                fireLaser = true;
+                            }
+                            else {
+                                fireLaser = false;
+                                chargeLaser = false;
+                                returnToCircle(game);
+                            }
+                            break;
+                        case LaserPattern:
+                            moveEntity(0, 0, Math.PI - orientation);
+                            laserTime += timePassed;
+                            if(laserTime <= 0.8) {
+                                chargeLaser = true;
+                            }
+                            else if(laserTime <= 2) {
+                                chargeLaser = false;
+                                fireLaser = true;
+                            }
+                            else {
+                                fireLaser = false;
+                                chargeLaser = false;
+                            }
+                            break;
+                        case BuddyBall:
+                            laserTime += timePassed;
+                            laserTime %= 3.0;
+                            if(laserTime <= 1.6) {
+                                fireLaser = false;
+                                chargeLaser = true;
+                            }
+                            else {
+                                fireLaser = true;
+                                chargeLaser = false;
+                            }
+                            break;
+                    }
+                    break;
+            }
+            
+            if(fireLaser) {
+                Vector2D orientationVector = new Vector2D(Math.cos(orientation), Math.sin(orientation));
+                Vector2D relPos = new Vector2D(p.getX() - x, p.getY() - y);
+                double dot = relPos.dot(orientationVector);
+                if(dot > 0) {
+                    double dist = Math.sqrt(relPos.sub(orientationVector.scale(dot)).getMagnitudeSquared());
+                    if(dist < laserWidth/2.0) {
+                        p.takeDamage(35);
+                    }
+                }
+            }
+        }
+        
+        public void draw(Graphics2D g) {
+            //super.draw(g);
+            laserCan.draw(g, x, y, orientation);
+            
+            if(fireLaser || chargeLaser) {
+            double dist = 2000;
+            Vector2D dir = new Vector2D(Math.cos(orientation), Math.sin(orientation));
+            Vector2D n = dir.getNorm();
+
+            double drawWidth = (fireLaser)? laserWidth/2.0 : laserWidth/4.0;
+            Vector2D i = dir.scale(dist);
+            Vector2D k = dir.scale(buddyWidth/2.0);
+            Vector2D j = n.scale(drawWidth);
+
+            int[] xP = new int[4];
+            int[] yP = new int[4];
+
+            Vector2D p1 = i.sub(j);
+            Vector2D p2 = i.add(j);
+            Vector2D p3 = k.add(j);
+            Vector2D p4 = k.sub(j);
+
+            xP[0] = (int) (x + p1.x);
+            yP[0] = (int) (y + p1.y);
+
+            xP[1] = (int) (x + p2.x);
+            yP[1] = (int) (y + p2.y);
+
+            xP[2] = (int) (x + p3.x);
+            yP[2] = (int) (y + p3.y);
+
+            xP[3] = (int) (x + p4.x);
+            yP[3] = (int) (y + p4.y);
+
+            if(fireLaser) {
+                g.setColor(Color.red);
+            }
+            else {
+                g.setColor(new Color(1.0f, 0.0f, 0.0f, 0.5f));
+            }
+            
+            g.fillPolygon(xP, yP, 4);
+        }
+        }
+    }
+    
+    private void releaseBuddies(int nBuddies) {
+        buddyState = BuddyPattern.Cooldown;
+        buddyCooldown.resetTimer();
+        for(LaserBuddy b : buddies) {
+            b.kill();
+        }
+        buddies.clear();
+        
+        buddyReleaseRate.resetTimer();
+        
+        releaseBuddies = true;
+        this.nBuddies = nBuddies;
+        double dTheta = Math.PI * 2 / nBuddies;
+        buddyDCos = Math.cos(dTheta);
+        buddyDSin = Math.sin(dTheta);
+        buddyBall.clear();
+    }
+    
+    private Vector2D getBuddyOrbitCoord(int buddyNum, double travelTime, ArizonaAdventure game) {
+        double bAng = buddyAng + Math.PI * 2 * (buddySpinRate * travelTime + (double) buddyNum / nBuddies);
+        double bY = game.getGameHeight()/2 + flyMagnitude * Math.sin(2 * Math.PI * (life + travelTime) / flyPeriod);
+        return new Vector2D(x + buddyRadius * Math.cos(bAng), bY + buddyRadius * Math.sin(bAng));
+    } 
+    
+    private void initBuddyBall(ArizonaAdventure game) {
+        int ballSize = 6;
+        int i = 0;
+        int n = 0;
+        while(i < buddies.size() && n < ballSize && n < nBuddies) {
+            LaserBuddy b = buddies.get(i);
+            i++;
+            if(b.isDead()) {
+                continue;
+            }
+            n++;
+            buddyBall.add(b);
+        }
+        buddyBallT = -buddyBallFormTime;
+        buddyBallCoord = new Vector2D(buddyBallRadius + Math.random() * (game.getGameWidth() - 2 * buddyBallRadius),
+                                        buddyBallRadius + Math.random() * (game.getGameHeight() - 2 * buddyBallRadius));
+        double dir = Math.random() * 2 * Math.PI;
+        buddyBallV = new Vector2D(Math.cos(dir), Math.sin(dir)).scale(buddyBallSpeed);
+        
+        double ang = 0;
+        for(int j = 0; j < buddyBall.size(); j++) {
+            LaserBuddy b = buddyBall.get(j);
+            b.accelerateToCoord(buddyBallCoord.x + Math.cos(ang) * buddyBallRadius, buddyBallCoord.y + buddyBallRadius * Math.sin(ang), buddyBallFormTime, false);
+            ang += Math.PI * 2.0 / buddyBall.size();
+        }
+    }
+    
+    private void manageBuddies(double timePassed, ArizonaAdventure game) {
+        
+        //spin buddies around self
+        buddyAng += Math.PI * 2 * buddySpinRate * timePassed;
+        Vector2D buddyPos = new Vector2D(Math.cos(buddyAng), Math.sin(buddyAng)).scale(buddyRadius);
+        
+        for(int i = 0; i < buddies.size(); i++) {
+            LaserBuddy b = buddies.get(i);
+            if(!b.isDead()) {
+               if(b.state == BuddyState.Circling) {
+                   b.teleportToCoord(x + buddyPos.x, y + buddyPos.y);
+               }
+               else if(b.state == BuddyState.Born) {
+                   b.teleportToCoord(x + buddyPos.x * b.life / buddyBirthTime, y + buddyPos.y * b.life / buddyBirthTime);
+               }
+            }
+            double newX = buddyPos.x * buddyDCos - buddyPos.y * buddyDSin;
+            double newY = buddyPos.x * buddyDSin + buddyPos.y * buddyDCos;
+            buddyPos.x = newX;
+            buddyPos.y = newY;
+        }
+        
+        //spawn new waves of buddies
+        if(releaseBuddies) {
+            buddyReleaseRate.updateTimer(timePassed);
+            if(buddyReleaseRate.tryToFire()) {
+                LaserBuddy b = new LaserBuddy(buddies.size()); 
+                game.addNewEnemy(b);
+                buddies.add(b);
+                if(buddies.size() == nBuddies) {
+                    releaseBuddies = false;
+                }
+            }
+        }
+        else if(buddies.size() > 0) {  
+            //manage attack patterns
+            switch(buddyState) {
+                case Cooldown:
+                    buddyCooldown.updateTimer(timePassed);
+                    if(buddyCooldown.tryToFire()) {
+                        buddyI = 0;
+                        
+                        BuddyPattern newPattern = null;
+                        do {
+                            int newAttack = (int) (Math.random() * 3);
+                            switch(newAttack) {
+                                case 0:
+                                    newPattern = BuddyPattern.QuickLaser;
+                                    break;
+                                case 1:
+                                    nPatternRepetitions = 3;
+                                    newPattern = BuddyPattern.LaserPattern;
+                                    break;
+                                case 2:
+                                    newPattern = BuddyPattern.BuddyBall;
+                                    break;
+                            }
+                        } while(newPattern == buddyState);
+                        buddyState = newPattern;
+                        if(buddyState == BuddyPattern.BuddyBall) {
+                            initBuddyBall(game);
+                        }
+                    }
+                    break;
+                case QuickLaser:
+                    quickBuddyFireRate.updateTimer(timePassed);
+                    if(quickBuddyFireRate.tryToFire()) {
+                        LaserBuddy b = null;
+                        while((b == null || b.isDead()) && buddyI < buddies.size()) {
+                            b = buddies.get(buddyI);
+                            buddyI++;
+                        }
+                        
+                        if(b != null && !b.isDead()) {
+                            double targetX = 0.6 * Math.random() * game.getGameWidth();
+                            double targetY = Math.random() * game.getGameHeight();
+                            b.accelerateToCoord(targetX, targetY, 1.0, false);
+                        }
+                        
+                        if(buddyI >= buddies.size()) {
+                            
+                            boolean attackDone = true;
+                            for(LaserBuddy buddy : buddies) {
+                                if(!buddy.isDead() && buddy.state != BuddyState.Circling) {
+                                    attackDone = false;
+                                    break;
+                                }
+                            }
+                            if(attackDone) {
+                                buddyState = BuddyPattern.Cooldown;
+                                for(LaserBuddy buddy : buddies) {
+                                    buddy.state = BuddyState.Circling;
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                    
+                    break;
+                case LaserPattern:
+                    laserPatternRate.updateTimer(timePassed);
+                    if(laserPatternRate.tryToFire()) {
+                        int nBuddies = 9;
+                        
+                        if(nPatternRepetitions == 0) {
+                            for(LaserBuddy b : buddies) {
+                                if(b.state != BuddyState.Circling) {
+                                    b.returnToCircle(game);
+                                }
+                            }
+                            buddyState = BuddyPattern.Cooldown;
+                        }
+                        else {
+                            nPatternRepetitions--;
+                            int nSlots = (int) (game.getGameHeight() / laserWidth);
+                            boolean[] occupied = new boolean[nSlots];
+                            for(int i = 0; i < occupied.length; i++) {
+                                occupied[i] = false;
+                            }
+                            
+                            int n = 0;
+                            int i = 0;
+                            while(i < buddies.size() && n < nBuddies) {
+                                LaserBuddy b = buddies.get(i);
+                                i++;
+                                if(b.isDead()) {
+                                    continue;
+                                }
+                                n++;
+                                int slot;
+                                do {
+                                    slot = (int) (Math.random() * nSlots);
+                                } while(occupied[slot]);
+                                occupied[slot] = true;
+                                b.accelerateToCoord(game.getGameWidth() - 2 * buddyWidth, laserWidth * (slot + 0.5), 1.2, false);
+                            }
+                        }
+                    }
+                    break;
+                    
+                case BuddyBall:
+                    buddyBallT += timePassed;
+                    
+                    if(buddyBallT >= 0) {
+                        buddyBallCoord.x += timePassed * buddyBallV.x;
+                        buddyBallCoord.y += timePassed * buddyBallV.y;
+
+                        if(buddyBallCoord.x < buddyBallRadius) {
+                            buddyBallCoord.x = buddyBallRadius;
+                            buddyBallV.x *= -1;
+                        }
+                        else if(buddyBallCoord.x > game.getGameWidth() - buddyBallRadius) {
+                            buddyBallCoord.x = game.getGameWidth() - buddyBallRadius;
+                            buddyBallV.x *= -1;
+                        }
+                        if(buddyBallCoord.y < buddyBallRadius) {
+                            buddyBallCoord.y = buddyBallRadius;
+                            buddyBallV.y *= -1;
+                        }
+                        else if(buddyBallCoord.y > game.getGameHeight() - buddyBallRadius) {
+                            buddyBallCoord.y = game.getGameHeight() - buddyBallRadius;
+                            buddyBallV.y *= -1;
+                        }
+                            
+                        double ang = buddyBallT / 2;
+                        for(int j = 0; j < buddyBall.size(); j++) {
+                            LaserBuddy b = buddyBall.get(j);
+                            b.teleportToCoord(buddyBallCoord.x + buddyBallRadius * Math.cos(ang), buddyBallCoord.y + buddyBallRadius * Math.sin(ang));
+                            b.setOrientation(ang);
+                            ang += Math.PI * 2.0 / buddyBall.size();
+                        }
+
+                        if(buddyBallT >= 14) {
+                            for(LaserBuddy b : buddyBall) {
+                                if(b.state != BuddyState.Circling) {
+                                    b.returnToCircle(game);
+                                }
+                            }
+                            buddyBall.clear();
+                            buddyState = BuddyPattern.Cooldown;
+                        }
+
+                    }
+                    break;
+            }
+        }
     }
     
     public boolean entityOffLeft() {
         return false;
     }
     
+    public void takeDamage(double damage) {
+        double hpBefore = hp;
+        super.takeDamage(damage);
+        if(state == BossState.Fly) {
+            if(hpBefore/startingHP > 2.0/3 &&
+                    hp/startingHP <= 2.0/3) {
+                releaseBuddies(12);
+            }
+            else if(hpBefore/startingHP > 1.0/3 &&
+                    hp/startingHP <= 1.0/3) {
+                releaseBuddies(16);
+            }
+        }
+    }
+    
     public void update(double timePassed, ArizonaAdventure game) {
         life += timePassed;
-        move(timePassed, game);
-        if(!firstWalkOnRight) {
-            shoot(timePassed, game);
+        
+        if(exploding() && nExplosions > 0) {
+            if(buddies.size() > 0) {
+                for(LaserBuddy b : buddies) {
+                    b.kill();
+                }
+                buddies.clear();
+            }
+            explosionTimer.updateTimer(timePassed);
+            if(explosionTimer.tryToFire()) {
+                double xC = x - width/2.0 + Math.random() * width;
+                double chosenHeight = ((state == BossState.Fly)? flyBoxHeight : this.height);
+                double yC = y - chosenHeight/2.0 + Math.random() * chosenHeight;
+                game.addExplosion(new ExplosionEffect(xC, yC, (int) (100 + Math.random() * 60), 0.35));
+                nExplosions--;
+                if(nExplosions == 0 && state != BossState.Fly) {
+                    game.addExplosion(new ExplosionEffect(x, y, size, 0.5));
+                    game.addEffect(new ColorFlash(0.5, 2.0, (int) game.getGameWidth(), (int) game.getGameHeight(), 1.0f, 1.0f, 1.0f));
+                }
+            }
         }
+        else {
+        
+            move(timePassed, game);
+            if(state == BossState.Fly) {
+                manageBuddies(timePassed, game);
+            }
+            else {
+                aim(game);
+                if(state == BossState.Walk || x < game.getGameWidth()) {
+                    shoot(timePassed, game);
+                }
+                if(hp <= 0) {
+                    nExplosions = 50;
+                    startFlying(game);
+                } 
+            }
+        }
+    }
+    
+    private boolean exploding() {
+        return super.isDead();
+    }
+    
+    public boolean isDead() {
+        return super.isDead() && state == BossState.Fly && nExplosions == 0;
     }
     
     public void draw(Graphics2D g) {
         //super.draw(g);
-        legS.draw(g, x + headX + rearLegX, baseY + headY + rearLegY, 0);
-        rearArmS.draw(g, x + headX + gunX, baseY + headY + gunY, gunAng);
-        headS.draw(g, x + headX, baseY + headY, 0);
-        legS.draw(g, x + headX + foreLegX, baseY + headY + foreLegY, 0);
-        
-        Sprite gunSprite;
-        if(onRight) {
-            gunSprite = (canFlash && fireTimer.getTimeElapsed() < flashTime)? gunFire : gunS;
+        if(state == BossState.Fly) {
+            hoverHead.draw(g, x, y, orientation);
         }
         else {
-            gunSprite = (slowAttack.getTimeElapsed() < flashTime)? gunFire : gunS;
+            legS.draw(g, x + headX + rearLegX, baseY + headY + rearLegY, 0);
+            rearArmS.draw(g, x + headX + gunX, baseY + headY + gunY, gunAng);
+            headS.draw(g, x + headX, baseY + headY, 0);
+            legS.draw(g, x + headX + foreLegX, baseY + headY + foreLegY, 0);
+
+            Sprite gunSprite;
+            if(onRight) {
+                gunSprite = (canFlash && fireTimer.getTimeElapsed() < flashTime)? gunFire : gunS;
+            }
+            else {
+                gunSprite = (slowAttack.getTimeElapsed() < flashTime)? gunFire : gunS;
+            }
+            gunSprite.draw(g, x + headX + gunX, baseY + headY + gunY, gunAng);
         }
-        gunSprite.draw(g, x + headX + gunX, baseY + headY + gunY, gunAng);
     }
 }

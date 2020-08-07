@@ -58,7 +58,7 @@ public class RocketEnemy extends KillableEntity {
         }
         else if(travelingToY) {
             timeTraveled += timePassed;
-            double dy = timePassed * accelFactor * (-timeTraveled * timeTraveled + timeTraveled);
+            double dy = timePassed * timeTraveled * accelFactor * (1 -timeTraveled / travelTime); 
             if(timeTraveled >= travelTime) {
                 travelingToY = false;
                 timeTraveled = 0;
@@ -83,7 +83,7 @@ public class RocketEnemy extends KillableEntity {
                     targetY = game.getGameHeight() - targetY;
                 }
                 double dy = targetY - y;
-                accelFactor = dy / (travelTime * travelTime / 2.0 - travelTime * travelTime * travelTime / 3.0);
+                accelFactor = dy * 6.0 / (travelTime * travelTime);
                 travelingToY = true;
             }
         }

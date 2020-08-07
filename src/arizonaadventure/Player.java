@@ -20,7 +20,7 @@ public class Player extends KillableEntity {
     
     private static double defWidth = 90;
     private static double defHeight = 15;
-    private static double mini = 0.75;
+    private static double mini = 0.67;
     
     private double width;
     private double height;
@@ -51,7 +51,7 @@ public class Player extends KillableEntity {
         nProjectiles = 1 + upgrades.fireVolume;
         double fireRate = 3 + 0.33 * upgrades.fireRate;
         primaryFire = new CooldownTimer(fireRate);
-        rocketFire = new CooldownTimer(fireRate * 2/30);
+        rocketFire = new CooldownTimer(fireRate / 10);
         invincibleTime = new CooldownTimer(0.8);
         hasRockets = upgrades.missiles;
         if(sprite == null || upgrades.miniShip != spriteMini) {
@@ -100,7 +100,7 @@ public class Player extends KillableEntity {
     private void checkForCollisions(ArizonaAdventure game) {
         if(!invincible) {
             for(KillableEntity e : game.getEnemies()) {
-                if(this.hitboxesIntersecting(e)) {
+                if(!e.nonPlayerCollidable && this.hitboxesIntersecting(e)) {
                     e.takeDamage(200);
                     this.takeDamage(50);
                     break;

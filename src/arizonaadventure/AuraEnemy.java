@@ -30,7 +30,7 @@ public class AuraEnemy extends KillableEntity {
         fire = new CooldownTimer(0.65);
         if(sprite == null) {
             sprite = new Sprite("electricgatorade.png", (int)(70 * 1.5));
-            bulletSprite = new Sprite("lightningball.png", (int)(16 * 2));
+            bulletSprite = new Sprite("thunderbolt.png", 60);
         }
         double dTheta = 2 * Math.PI / nProj;
         cos = Math.cos(dTheta);
@@ -52,7 +52,7 @@ public class AuraEnemy extends KillableEntity {
     }
     
     public void draw(Graphics2D g) {
-        super.draw(g);
+        //super.draw(g);
         sprite.draw(g, x, y, orientation);
     }
     

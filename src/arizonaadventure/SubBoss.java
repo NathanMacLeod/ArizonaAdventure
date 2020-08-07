@@ -320,7 +320,10 @@ public class SubBoss extends KillableEntity implements Boss {
                             targetY = -bigMissileSize; 
                         }
                         else if(fireBigOne) {
-                            spawnX = Math.random() * game.getGameWidth();
+                            spawnX = Math.random() * game.getGameWidth() * 0.25;
+                            if(Math.random() > 0.5) {
+                                spawnX = game.getGameWidth() - spawnX;
+                            }
                             spawnY = -bigMissileSize;
                             targetX = spawnX;
                             targetY = game.getGameHeight() * (0.33 + 0.66 * Math.random());
@@ -374,12 +377,12 @@ public class SubBoss extends KillableEntity implements Boss {
     }
     
     private boolean exploding() {
-            return super.isDead();
-        }
+        return super.isDead();
+    }
         
-        public boolean isDead() {
-            return exploding() && nExplosions <= 0;
-        }
+    public boolean isDead() {
+        return exploding() && nExplosions <= 0;
+    }
     
     public void update(double timePassed, ArizonaAdventure game) {
         life += timePassed;
@@ -416,7 +419,7 @@ public class SubBoss extends KillableEntity implements Boss {
                 case Surfaced:
                     shoot(timePassed, game);
 
-                    double jostleVel = shakeMagnitude * Math.PI / (shakePeriod) * Math.cos(life * Math.PI / (shakePeriod));
+                    double jostleVel = shakeMagnitude * Math.PI / shakePeriod * Math.cos(life * Math.PI / (shakePeriod));
                     move = -jostleVel * timePassed;
                     moveEntity(0, move, 0);
 

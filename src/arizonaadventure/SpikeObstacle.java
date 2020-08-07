@@ -38,6 +38,11 @@ public class SpikeObstacle extends KillableEntity {
         state = SpikeState.Risen;
         
         postHitbox = new KillableEntity(x, restY - (height + postHeight)/2.0, generateSquareHitbox(postWidth, postHeight), 100000000, 1) {
+            
+            public boolean entityOffLeft() {
+                return SpikeObstacle.this.entityOffLeft();
+            }
+            
             public void draw(Graphics2D g) {
                 
             }

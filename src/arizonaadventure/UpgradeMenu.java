@@ -50,7 +50,7 @@ public class UpgradeMenu extends ImagePanel {
                 }
             }
         };
-        UpgradeChoice missiles = new UpgradeChoice(button, buttonHover, 100, 250, 70, 70, 4, "Missiles", "Periodically fire guided missiles"){
+        UpgradeChoice missiles = new UpgradeChoice(button, buttonHover, 100, 250, 70, 70, 3, "Missiles", "Periodically fire guided missiles"){
             public void doAction(ArizonaAdventure game) {
                 if(canAfford(game) && !game.getUpgrades().missiles) {
                     game.getUpgrades().missiles = true;

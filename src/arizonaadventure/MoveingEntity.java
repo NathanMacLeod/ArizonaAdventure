@@ -31,6 +31,11 @@ public class MoveingEntity implements Drawable, Updatable {
         sizeRadius = determineRadius();
     }
     
+    public void updateHitbox(ArrayList<Vector2D> hitbox) {
+        this.hitbox = hitbox;
+        generateWorldHitbox();
+    }
+    
     protected static ArrayList<Vector2D> generateSquareHitbox(double width, double height) {
         
         double wr = width/2.0;
