@@ -45,7 +45,6 @@ public class BurstEnemy extends KillableEntity {
             else {
                 fire.updateTimer(timePassed);
                 if(fire.tryToFire()) {
-                    System.out.println(burstCount);
                     burstCount--;
                     Player player = game.getPlayer();
                     Vector2D velocity = new Vector2D(player.x - x, player.y - y).getUnitVector().scale(250);

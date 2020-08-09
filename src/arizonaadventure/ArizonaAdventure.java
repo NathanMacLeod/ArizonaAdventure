@@ -4,15 +4,20 @@
  * and open the template in the editor.
  */
 package arizonaadventure;
+import java.io.File;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.io.IOException;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.util.Scanner;
 /**
  *
  * @author macle
@@ -29,8 +34,8 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     private int mouseX, mouseY;
     private int maxLevel;
     private UpgradeList upgrades;
-    private int upgradeTokens = 25;
-    private int maxTokens = 25;
+    private int upgradeTokens = 0;
+    private int maxTokens = 0;
     
     private boolean playerDead;
     private Player player;
@@ -76,9 +81,9 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         
         mouseX = 0;
         mouseY = 0;
-        maxLevel = 3;
+        maxLevel = 1;
         
-        currPanel = new LevelSelect(maxLevel);
+        currPanel = new MainMenu(this);
         
         frame.addKeyListener(new KeyAdapter() {
             
@@ -151,7 +156,6 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         
         //testLevel = new SpawnPeriod(100, 2, new int[] {10, 30, 2, 3});
         //testBoss = new TrainBoss(this);
-        
         while(running) {
             currentTime = System.nanoTime();
             double timePassed = (currentTime - previousTime)/ Math.pow(10, 9);
@@ -189,7 +193,12 @@ public class ArizonaAdventure extends JPanel implements Runnable {
                     upgradeTokens += 15;
                     maxTokens += 15;
                     break;
+                case 3:
+                    upgradeTokens += 75;
+                    maxTokens += 75;
+                    break;
             }
+            save();
         }
         currPanel = new LevelSelect(maxLevel);
         inMenu = true;
@@ -229,7 +238,9 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         click = false;
         Graphics2D g = (Graphics2D) buffer.getGraphics();
         currPanel.draw(g);
-        drawTokens(g);
+        if(!(currPanel instanceof MainMenu)) {
+            drawTokens(g);
+        }
         getGraphics().drawImage(buffer, 0, 0, null);  
     }
     
@@ -342,7 +353,43 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         for(Effect e : effects) {
             e.draw(g);
         }
+        currLevel.drawForeMid(g);
         getGraphics().drawImage(buffer, 0, 0, null);    
+    }
+    
+    public void loadSave() {
+        try {
+            Scanner scanner = new Scanner(new File("save.txt"));
+            int level = Integer.parseInt(scanner.nextLine());
+            int tokens = Integer.parseInt(scanner.nextLine());
+            maxLevel = level;
+            maxTokens = tokens;
+            upgradeTokens = maxTokens;
+        }
+        catch(IOException e) {
+            System.out.println(e);
+        }
+    }
+    
+    private void save() {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter("save.txt"));
+            writer.write("" + maxLevel + "\n" + maxTokens);
+            writer.close();
+        }
+        catch(IOException e) {
+            System.out.println(e);
+        }
+    }
+    
+    public boolean saveFileExists() {
+        File save = new File("save.txt");
+        return save.exists();
+    }
+    
+    public void eraseSaveFile() {
+        File save = new File("save.txt");
+        save.delete();
     }
     
     public void refundUpgrades() {

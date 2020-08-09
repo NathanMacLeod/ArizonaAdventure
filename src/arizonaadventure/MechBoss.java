@@ -79,10 +79,14 @@ public class MechBoss extends KillableEntity implements Boss {
     private static Sprite hoverHead;
     private static Sprite laserCan;
     private static Sprite laserBolt;
+    private static Sprite laserStart;
+    private static Sprite laserSect;
     
     private GunState gunState;
     private BossState state;
     private BuddyPattern buddyState;
+    private GunState prevGunState;
+    private BuddyPattern prevBuddyState;
     
     private static int nShots = 4;
     private int shotCount;
@@ -130,6 +134,8 @@ public class MechBoss extends KillableEntity implements Boss {
         
         state = BossState.FirstWalkOn;
         gunState = GunState.Reload;
+        prevGunState = GunState.Reload;
+        prevBuddyState = BuddyPattern.Cooldown;
         fireTimer = new CooldownTimer(1);
         reloadTimer = new CooldownTimer(0.56);
         slowAttack = new CooldownTimer(0.4);
@@ -191,6 +197,8 @@ public class MechBoss extends KillableEntity implements Boss {
         hoverHead = new Sprite("mechheadfloating.png", (int) (size / 1.25));
         laserCan = new Sprite("ringedcan.png", (int) (buddyWidth * 1.8));
         laserBolt = new Sprite("laserbolt.png", 50);
+        laserStart = new Sprite("laserStartSection.png", (int) laserWidth);
+        laserSect = new Sprite("laserSection.png", (int) laserWidth);
     }
     
     private void flip() {
@@ -317,8 +325,9 @@ public class MechBoss extends KillableEntity implements Boss {
                             newAttack = GunState.Rocket;
                             break;
                     }
-                } while(newAttack == gunState);
+                } while(newAttack == prevGunState);
                 gunState = newAttack;
+                prevGunState = newAttack;
             }
         }
         else {
@@ -629,45 +638,67 @@ public class MechBoss extends KillableEntity implements Boss {
             //super.draw(g);
             laserCan.draw(g, x, y, orientation);
             
-            if(fireLaser || chargeLaser) {
-            double dist = 2000;
-            Vector2D dir = new Vector2D(Math.cos(orientation), Math.sin(orientation));
-            Vector2D n = dir.getNorm();
+            if(chargeLaser) {
+                double dist = 2000;
+                Vector2D dir = new Vector2D(Math.cos(orientation), Math.sin(orientation));
+                Vector2D n = dir.getNorm();
 
-            double drawWidth = (fireLaser)? laserWidth/2.0 : laserWidth/4.0;
-            Vector2D i = dir.scale(dist);
-            Vector2D k = dir.scale(buddyWidth/2.0);
-            Vector2D j = n.scale(drawWidth);
+                double drawWidth = laserWidth/6.0;
+                Vector2D i = dir.scale(dist);
+                Vector2D k = dir.scale(buddyWidth/2.0);
+                Vector2D j = n.scale(drawWidth);
 
-            int[] xP = new int[4];
-            int[] yP = new int[4];
+                int[] xP = new int[4];
+                int[] yP = new int[4];
 
-            Vector2D p1 = i.sub(j);
-            Vector2D p2 = i.add(j);
-            Vector2D p3 = k.add(j);
-            Vector2D p4 = k.sub(j);
+                Vector2D p1 = i.sub(j);
+                Vector2D p2 = i.add(j);
+                Vector2D p3 = k.add(j);
+                Vector2D p4 = k.sub(j);
 
-            xP[0] = (int) (x + p1.x);
-            yP[0] = (int) (y + p1.y);
+                xP[0] = (int) (x + p1.x);
+                yP[0] = (int) (y + p1.y);
 
-            xP[1] = (int) (x + p2.x);
-            yP[1] = (int) (y + p2.y);
+                xP[1] = (int) (x + p2.x);
+                yP[1] = (int) (y + p2.y);
 
-            xP[2] = (int) (x + p3.x);
-            yP[2] = (int) (y + p3.y);
+                xP[2] = (int) (x + p3.x);
+                yP[2] = (int) (y + p3.y);
 
-            xP[3] = (int) (x + p4.x);
-            yP[3] = (int) (y + p4.y);
+                xP[3] = (int) (x + p4.x);
+                yP[3] = (int) (y + p4.y);
 
-            if(fireLaser) {
-                g.setColor(Color.red);
-            }
-            else {
-                g.setColor(new Color(1.0f, 0.0f, 0.0f, 0.5f));
+                if(fireLaser) {
+                    g.setColor(Color.red);
+                }
+                else {
+                    g.setColor(new Color(1.0f, 0.0f, 0.0f, 0.5f));
+                }
+
+                g.fillPolygon(xP, yP, 4);
             }
             
-            g.fillPolygon(xP, yP, 4);
-        }
+            if(fireLaser) {
+                Vector2D dir = new Vector2D(Math.cos(orientation), Math.sin(orientation));
+                Vector2D n = dir.getUnitVector();
+                Vector2D incr = n.scale(laserWidth);
+
+                Vector2D curr = new Vector2D(x, y);
+                curr = curr.add(n.scale(buddyWidth/2.0)).add(incr.scale(0.5));
+
+                double toll = 1.42 * laserWidth;
+                boolean first = true;
+                while(curr.x > - toll && curr.x < 1000 + toll && curr.y > -toll && curr.y < 600 + toll) {
+                    if(first) {
+                        first = false;
+                        laserStart.draw(g, curr.x, curr.y, orientation);
+                    }
+                    else {
+                        laserSect.draw(g, curr.x, curr.y, orientation);
+                    }
+                    curr = curr.add(incr);
+                }
+            }
         }
     }
     
@@ -779,8 +810,9 @@ public class MechBoss extends KillableEntity implements Boss {
                                     newPattern = BuddyPattern.BuddyBall;
                                     break;
                             }
-                        } while(newPattern == buddyState);
+                        } while(newPattern == prevBuddyState);
                         buddyState = newPattern;
+                        prevBuddyState = newPattern;
                         if(buddyState == BuddyPattern.BuddyBall) {
                             initBuddyBall(game);
                         }

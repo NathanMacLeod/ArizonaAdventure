@@ -14,6 +14,8 @@ import java.awt.Color;
  */
 public class LaserEnemy extends KillableEntity {
     private Sprite sprite;
+    private Sprite laserStart;
+    private Sprite laserSect;
     
     private static double width = 65;
     private double speed;
@@ -41,6 +43,8 @@ public class LaserEnemy extends KillableEntity {
         laserWidth = 40;
         if(sprite == null) {
             sprite = new Sprite("redbulllite.png", (int)(width * 1.5));
+            laserStart = new Sprite("laserStartSection.png", (int) laserWidth);
+            laserSect = new Sprite("laserSection.png", (int) laserWidth);
         }
         sprite = new Sprite(sprite);
     }
@@ -112,12 +116,12 @@ public class LaserEnemy extends KillableEntity {
         
         sprite.draw(g, x, y, orientation);
         
-        if(firing || charging) {
+        if(charging) {
             double dist = 2000;
             Vector2D dir = new Vector2D(Math.cos(orientation), Math.sin(orientation));
             Vector2D n = dir.getNorm();
 
-            double drawWidth = (firing)? laserWidth/2.0 : laserWidth/4.0;
+            double drawWidth = laserWidth/6.0;//(firing)? laserWidth/2.0 : laserWidth/4.0;
             Vector2D i = dir.scale(dist);
             Vector2D k = dir.scale(width/2.0);
             Vector2D j = n.scale(drawWidth);
@@ -142,14 +146,36 @@ public class LaserEnemy extends KillableEntity {
             xP[3] = (int) (x + p4.x);
             yP[3] = (int) (y + p4.y);
 
-            if(firing) {
-                g.setColor(Color.red);
-            }
-            else {
+//            if(firing) {
+//                g.setColor(Color.red);
+//            }
+//            else {
                 g.setColor(new Color(1.0f, 0.0f, 0.0f, 0.5f));
-            }
+//            }
             
             g.fillPolygon(xP, yP, 4);
+        }
+        
+        if(firing) {
+            Vector2D dir = new Vector2D(Math.cos(orientation), Math.sin(orientation));
+            Vector2D n = dir.getUnitVector();
+            Vector2D incr = n.scale(laserWidth);
+            
+            Vector2D curr = new Vector2D(x, y);
+            curr = curr.add(n.scale(width/2.0)).add(incr.scale(0.5));
+            
+            double toll = 1.42 * laserWidth;
+            boolean first = true;
+            while(curr.x > - toll && curr.x < 1000 + toll && curr.y > -toll && curr.y < 600 + toll) {
+                if(first) {
+                    first = false;
+                    laserStart.draw(g, curr.x, curr.y, orientation);
+                }
+                else {
+                    laserSect.draw(g, curr.x, curr.y, orientation);
+                }
+                curr = curr.add(incr);
+            }
         }
     }
     

@@ -10,5 +10,5 @@ package arizonaadventure;
  * @author macle
  */
 public enum MenuState {
-    Levels, Upgrades
+    Levels, Upgrades, Main
 }

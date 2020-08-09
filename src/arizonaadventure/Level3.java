@@ -21,6 +21,7 @@ public class Level3 extends Level{
     private SpikeObstacle mechReappearSpike;
     private boolean bossHide = false;
     private boolean bossReapper = false;
+    private boolean transitioned = false;
     
     public Level3(int width, int height) {
         super(width, height);
@@ -31,6 +32,13 @@ public class Level3 extends Level{
             background = ImageIO.read(new File("./sprites/lvl3bg.png"));
             foreground = null;//ImageIO.read(new File("./sprites/lvl2fg.png"));
             middleground = ImageIO.read(new File("./sprites/lvl3mg.png"));
+            transMid = ImageIO.read(new File("./sprites/lvl3transmg.png"));
+            transMidfore = ImageIO.read(new File("./sprites/lvl3transffg.png"));
+            newFore = null;
+            newMid = ImageIO.read(new File("./sprites/lvl3labbg.png"));
+            newMidfore = null;
+            newBack = null;
+            transWidth = transMid.getWidth();
             backgroundWidth = background.getWidth();
         } catch(IOException e) {
             System.out.println("failed to read level 1 backgrounds");
@@ -104,6 +112,12 @@ public class Level3 extends Level{
     
     public void update(double timePassed, ArizonaAdventure game) {
         super.update(timePassed, game);
+        
+        if(!transitioned && finalWave()) {
+            transitioned = true;
+            transition();
+        }
+        
         if(bossFight && !bossHide && mechDisappearSpike.getX() < game.getGameWidth()/2.0) {
             ((MechBoss) boss).dissapearToLeft();
             bossHide = true;
@@ -117,14 +131,13 @@ public class Level3 extends Level{
     
     protected void setWaves() {
         waves = new ArrayList(); 
-        //waves.add(new SpawnPeriod(5, 1, new int[] {0, 0, 0, 0, 0, 0, 0, 2}));
         waves.add(new SpawnPeriod(60, 2, new int[] {20, 25, 5, 4, 0, 10, 0}));
         waves.add(new SpawnPeriod(40, 2, new int[] {7, 16, 4, 2, 0, 6, 9}));
-        waves.add(new SpawnPeriod(1, 1, new int[] {0, 0, 0, 0, 0, 0, 0, 2}));
+        waves.add(new SpawnPeriod(5, 1, new int[] {0, 0, 0, 0, 0, 0, 0, 2}));
         waves.add(new SpawnPeriod(3, 1, new int[] {0, 0, 0, 0, 1, 0, 0, 0}));
         waves.add(new SpawnPeriod(75, 2.2, new int[] {8, 14, 4, 2, 0, 6, 5, 2}));
         waves.add(new SpawnPeriod(3, 1, new int[] {0, 0, 0, 0, 1, 0, 0, 0}));
-        waves.add(new SpawnPeriod(3, 8, new int[] {0, 0, 0, 0, 0, 0, 0, 0}));
+        waves.add(new SpawnPeriod(80, 1, new int[] {0, 40, 0, 0, 0, 0, 0, 0}));
     }
     
     protected Boss spawnBoss(ArizonaAdventure game) {

@@ -33,6 +33,18 @@ public abstract class Level implements Updatable, Drawable {
     protected BufferedImage foreground;
     protected BufferedImage middleground;
     protected BufferedImage background;
+    protected BufferedImage foremidGround;
+    
+    private boolean toTransition;
+    protected boolean inTransition;
+    protected int transWidth;
+    protected BufferedImage transMid;
+    protected BufferedImage transMidfore;
+    
+    protected BufferedImage newFore;
+    protected BufferedImage newMid;
+    protected BufferedImage newBack;
+    protected BufferedImage newMidfore;
     
     protected double panSpeed;
     protected double backMultiplier = 0.2;
@@ -43,6 +55,7 @@ public abstract class Level implements Updatable, Drawable {
     private double backX;
     
     public Level(int width, int height) {
+        foremidGround = null;
         panSpeed = 600;
         setWaves();
         preloadSprites();
@@ -57,6 +70,10 @@ public abstract class Level implements Updatable, Drawable {
         postBossWait.resetTimer();
         zoom = false;  
         playerDead = false;
+    }
+    
+    protected boolean finalWave() {
+        return currentIndex >= waves.size();
     }
     
     protected abstract void preloadSprites();
@@ -77,29 +94,64 @@ public abstract class Level implements Updatable, Drawable {
         if(foreX > backgroundWidth) {
             foreX -= backgroundWidth;
         }
-        if(middleX > backgroundWidth) {
-            middleX -= backgroundWidth;
+        
+        if(inTransition) {
+            if(middleX > transWidth) {
+                middleX -= transWidth;
+                inTransition = false;
+                foreground = newFore;
+                middleground = newMid;
+                foremidGround = newMidfore;
+                background = newBack;
+                backgroundWidth = middleground.getWidth();
+            }
         }
+        else if(middleX > backgroundWidth) {
+            middleX -= backgroundWidth;
+            if(toTransition) {
+               toTransition = false;
+                inTransition = true;
+            }
+        }
+        
         if(backX > backgroundWidth) {
             backX -= backgroundWidth;
         }
     }
     
     public void draw(Graphics2D g) {
+        
         g.drawImage(background, (int) -backX, 0, null);
         if(backgroundWidth - backX < 1000) {
             g.drawImage(background, backgroundWidth - (int) backX, 0, null);
         }
-        g.drawImage(middleground, - (int) middleX, 0, null);
-        if(backgroundWidth - middleX < 1000) {
-            g.drawImage(middleground, backgroundWidth - (int) middleX, 0, null);
+        
+        if(toTransition) {
+            g.drawImage(middleground, - (int) middleX, 0, null);
+            if(backgroundWidth - middleX < 1000) {
+                g.drawImage(transMid, backgroundWidth - (int) middleX, 0, null);
+            }
         }
+        else if(inTransition) {
+            g.drawImage(transMid, - (int) middleX, 0, null);
+            if(transWidth - middleX < 1000) {
+                g.drawImage(newMid, transWidth - (int) middleX, 0, null);
+            }
+        }
+        else if(middleground != null) {
+            g.drawImage(middleground, -(int) middleX, 0, null);
+            if(backgroundWidth - middleX < 1000) {
+                g.drawImage(middleground, backgroundWidth - (int) middleX, 0, null);
+            }
+        }
+        
         if(foreground != null) {
             g.drawImage(foreground, -(int) foreX, 0, null);
             if(backgroundWidth - foreX < 1000) {
                 g.drawImage(foreground, backgroundWidth - (int) foreX, 0, null);
             }
         }
+        
         
         if(bossFight && !bossDead) {
             double hpWidth = 600;
@@ -116,6 +168,37 @@ public abstract class Level implements Updatable, Drawable {
             g.fillRect(hpX + (int) (hpWidth * hpRat), hpY, (int) hpWidth - (int) (hpWidth * hpRat), hpHeight);
             g.setColor(new Color(230, 0, 0, 120));
             g.fillRect(hpX, hpY, (int) (hpWidth * hpRat), hpHeight);
+        }
+    }
+    
+    public void transition() {
+        //Transitions sensitive to timing, can teleport onscreen with current implementation
+        //to fix play with spawn period timings
+        toTransition = true;
+    }
+    
+    public void drawForeMid(Graphics2D g) {
+        if(toTransition) {
+            if(foremidGround != null) {
+                g.drawImage(foremidGround, - (int) middleX, 0, null);
+            }
+            if(transMidfore != null && backgroundWidth - middleX < 1000) {
+                g.drawImage(transMidfore, backgroundWidth - (int) middleX, 0, null);
+            }
+        }
+        else if(inTransition) {
+            if(transMidfore != null) {
+                g.drawImage(transMidfore, - (int) middleX, 0, null);
+            }
+            if(newMidfore != null && transWidth - middleX < 1000) {
+                g.drawImage(newMidfore, transWidth - (int) middleX, 0, null);
+            }
+        }
+        else if(foremidGround != null) {
+            g.drawImage(foremidGround, -(int) middleX, 0, null);
+            if(backgroundWidth - middleX < 1000) {
+                g.drawImage(foremidGround, backgroundWidth - (int) middleX, 0, null);
+            }
         }
     }
     

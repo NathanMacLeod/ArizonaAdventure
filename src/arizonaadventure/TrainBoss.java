@@ -64,7 +64,7 @@ public class TrainBoss implements Boss {
         lobBullet = new Sprite("teadrop.png", 25);
         sprayBody = new Sprite("sierrabase.png", (int)(55));
         sprayTurret = new Sprite("sierraspray.png", (int)(50 * 1.4));
-        sprayBullet = new Sprite("teadrop.png", 25);
+        sprayBullet = new Sprite("sierramist.png", 25);
         basicBullet = new Sprite("mtwndew.png", 32);
         missileBody = new Sprite("pepsiBase.png", (int) (60 * 1.25));
         missileTurret = new Sprite("pepsirocketinert.png", (int) (60 * 2));
@@ -236,7 +236,7 @@ public class TrainBoss implements Boss {
                     nY = curr.x * dSin + curr.y * dCos;
                     curr.x = nX;
                     curr.y = nY;
-                    game.addNewProjectile(new BasicEnemyBullet(x + rX, y + rY, new Vector2D(curr.x, curr.y), basicBullet));
+                    game.addNewProjectile(new BasicEnemyBullet(x + rX, y + rY, new Vector2D(curr.x, curr.y), sprayBullet));
                 }
                 
             }
