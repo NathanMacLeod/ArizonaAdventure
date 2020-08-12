@@ -15,6 +15,13 @@ public class SubBoss extends KillableEntity implements Boss {
     private static final double height = 120;
     private static final double startingHP = 4500;
     
+    private static Music music;
+    private static final String missileLaunch = "missilelaunch.wav";
+    private static final String missileFlight = "missileLoop.wav";
+    private static final String nukeBoom = "nuke.wav";
+    private static final String cannon = "cannonboom.wav";
+    private static final String dive = "diveAlarm.wav";
+    
     private static Sprite bulletSprite;
     private static Sprite flak;
     private static Sprite body;
@@ -24,7 +31,6 @@ public class SubBoss extends KillableEntity implements Boss {
     private static Sprite shrapnel;
     private static Sprite missile;
     private static Sprite nuke;
-    
     
     private enum State {
         Submerged, Diving, Surfacing, Surfaced;
@@ -75,18 +81,18 @@ public class SubBoss extends KillableEntity implements Boss {
         missileX = width/4.0;
         turretRY = -height / 2.3;
         
-        
-        
         usedAttacks = new boolean[4];
-        moveEntity(690, submergeY, 0);
+        moveEntity(690, submergeY * 1.2, 0);
         state = State.Surfacing;
         surfaceTime = new CooldownTimer(1.0/20);
-        gunFire = new CooldownTimer(0.74);
+        gunFire = new CooldownTimer(0.7);
         salvoTimer = new CooldownTimer(2.0/3);
         missileRate = new CooldownTimer(4);
         nExplosions = 50;
         explosionTimer = new CooldownTimer(14);
         game.addNewEnemy(this);
+        music.fadeIn(6);
+        game.addSound(music);
     }
     
     public static void loadSprites() {
@@ -99,6 +105,27 @@ public class SubBoss extends KillableEntity implements Boss {
         turretFront = new Sprite("orangestand.png", (int) (width * 0.55));
         missile = new Sprite("orangemissile.png", (int) (missileSize * 1.5));
         nuke = new Sprite("bigone.png", (int) (bigMissileSize * 2));
+        
+        music = new Music("boss2music.wav");
+    }
+    
+    public static void unloadAssets() {
+        bulletSprite = null;
+        shrapnel = null;
+        flak = null;
+        body = null;
+        turretBack = null;
+        turretGun = null;
+        turretFront = null;
+        missile = null;
+        nuke = null;
+        
+        music.close();
+        music = null;
+    }
+    
+    public void endMusic() {
+        music.fadeOut(4.0);
     }
     
     private class ExplodingShell extends Projectile {
@@ -129,6 +156,7 @@ public class SubBoss extends KillableEntity implements Boss {
                 curr.y = newY;
             }
             game.addExplosion(new ExplosionEffect(flak, x, y, 60, 0.15));
+            SoundManager.play(explosion);
         }
         
         public void update(double timePassed, ArizonaAdventure game) {
@@ -155,6 +183,7 @@ public class SubBoss extends KillableEntity implements Boss {
         private int nShrapnel = 30;
         private boolean bigOne;
         private boolean armed;
+        private int soundID;
         
         private double distTraveled;
         private double targetDist;
@@ -179,10 +208,23 @@ public class SubBoss extends KillableEntity implements Boss {
                 maxVelocity = bigMissileMaxVelocity;
             }
             
+            if(y < 1000) {//spawned in flight, not being launched
+                soundID = SoundManager.playLooped(missileFlight);
+            }
+            else {
+                soundID = -1;
+            }
+            
             distTraveled = 0;
             currVelocity = vel;
             double orientation = dir.getAngle();
             moveEntity(0, 0, orientation);
+        }
+        
+        public void deleteActions() {
+            if(soundID != -1) {
+                SoundManager.terminateSFX(soundID);
+            }
         }
         
         private void detonate(ArizonaAdventure game) {
@@ -196,6 +238,7 @@ public class SubBoss extends KillableEntity implements Boss {
                 curr.x = newX;
                 curr.y = newY;
             }
+            SoundManager.play(nukeBoom);
             game.addEffect(new ColorFlash(0.1, 2.0, (int) game.getGameWidth(), (int) game.getGameHeight(), 1.0f, 1.0f, 1.0f));
             game.addExplosion(new ExplosionEffect(x, y, 250, 0.25));
         }
@@ -241,6 +284,7 @@ public class SubBoss extends KillableEntity implements Boss {
         gunFire.updateTimer(timePassed);
         if(gunFire.tryToFire()) {
             
+            SoundManager.play(cannon);
             double bulletSpeed = 270;
             Vector2D toTarget = new Vector2D(player.x - tx, player.y - ty);
             double len = Math.sqrt(toTarget.getMagnitudeSquared());
@@ -312,6 +356,7 @@ public class SubBoss extends KillableEntity implements Boss {
                         }
                         
                         if(launchFire) {
+                            SoundManager.play(missileLaunch);
                             double var = 100;
                             spawnVel = 0;
                             spawnX = x + missileX;
@@ -393,6 +438,7 @@ public class SubBoss extends KillableEntity implements Boss {
                 double xC = x - width/2.0 + Math.random() * width;
                 double yC = y - height/2.0 + Math.random() * height;
                 game.addExplosion(new ExplosionEffect(xC, yC, (int) (100 + Math.random() * 60), 0.35));
+                SoundManager.play(explosion);
                 nExplosions--;
             }
         }
@@ -425,6 +471,7 @@ public class SubBoss extends KillableEntity implements Boss {
 
                     surfaceTime.updateTimer(timePassed);
                     if(surfaceTime.tryToFire()) {
+                        SoundManager.play(dive);
                         state = State.Diving;
                     }
                     break;

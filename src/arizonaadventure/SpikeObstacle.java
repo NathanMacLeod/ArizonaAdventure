@@ -11,6 +11,7 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class SpikeObstacle extends KillableEntity {
+    private static final String slam = "spikeslam.wav";
     private static Sprite spikeHead = null;
     private static Sprite post;
     private static double restY = 75;
@@ -100,6 +101,9 @@ public class SpikeObstacle extends KillableEntity {
                 if(y + moveY > fallY) {
                     moveY = fallY - y;
                     state = SpikeState.Fallen;
+                    if(!super.entityOutOfBounds(game)) {
+                         SoundManager.play(slam);
+                    }
                 }
                 break;
         }

@@ -39,6 +39,7 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     
     private boolean playerDead;
     private Player player;
+    private ArrayList<Audible> sounds;
     private ArrayList<KillableEntity> enemies;
     private ArrayList<KillableEntity> enemyQueue;
     private ArrayList<Projectile> projectiles;
@@ -78,6 +79,7 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         effects = new ArrayList();
         pickups = new ArrayList();
         projQueue = new ArrayList();
+        sounds = new ArrayList();
         
         mouseX = 0;
         mouseY = 0;
@@ -166,7 +168,9 @@ public class ArizonaAdventure extends JPanel implements Runnable {
             }
             else {
                 gameUpdate(timePassed);
-                gameRender();
+                if(!inMenu) {
+                    gameRender();
+                }
             }
         }
     }
@@ -182,6 +186,8 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     }
     
     public void returnFromGame(boolean completed) {
+        cutSounds();
+        currLevel.unload();
         if(completed && currLevelNumber == maxLevel) {
             maxLevel++;
             switch(currLevelNumber) {
@@ -194,26 +200,30 @@ public class ArizonaAdventure extends JPanel implements Runnable {
                     maxTokens += 15;
                     break;
                 case 3:
-                    upgradeTokens += 75;
-                    maxTokens += 75;
+                    upgradeTokens += 5;
+                    maxTokens += 5;
                     break;
             }
             save();
         }
         currPanel = new LevelSelect(maxLevel);
+        click = false;
         inMenu = true;
     }
     
     public void loadLevel(int level) {
         switch(level) {
             case 1:
-                currLevel = new Level1((int) getGameWidth(), (int) getGameHeight());
+                currLevel = new Level1((int) getGameWidth(), (int) getGameHeight(), this);
                 break;
             case 2:
-                currLevel = new Level2((int) getGameWidth(), (int) getGameHeight());
+                currLevel = new Level2((int) getGameWidth(), (int) getGameHeight(), this);
                 break;
             case 3:
-                currLevel = new Level3((int) getGameWidth(), (int) getGameHeight());
+                currLevel = new Level3((int) getGameWidth(), (int) getGameHeight(), this);
+                break;
+            case 4:
+                currLevel = new Level4((int) getGameWidth(), (int) getGameHeight(), this);
                 break;
             default:
                 System.out.println("No corresponding level found");
@@ -270,13 +280,16 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         for(Effect e : effects) {
             e.update(timePassed, this);
         }
+        for(Audible a : sounds) {
+            a.update(timePassed, this);
+        }
+        
         currLevel.update(timePassed, this);
         
         if(player.isDead() && !playerDead) {
             player.explode(this);
-            currLevel.playerDead();
+            currLevel.playerDead(this);
             playerDead = true;
-            effects.add(new ColorFlash(2, 10000, width, height, 0.0f, 0.0f, 0.0f));
         }
         
         for(int i = 0; i < enemies.size(); i++) {
@@ -293,6 +306,7 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         for(int i = 0; i < projectiles.size(); i++) {
             Projectile p = projectiles.get(i);
             if(p.expired() || p.entityOutOfBounds(this)) {
+                p.deleteActions();
                 projectiles.remove(i);
                 i--;
             }
@@ -390,6 +404,18 @@ public class ArizonaAdventure extends JPanel implements Runnable {
     public void eraseSaveFile() {
         File save = new File("save.txt");
         save.delete();
+    }
+    
+    public void cutSounds() {
+        for(Audible a : sounds) {
+            a.stopAudio();
+        }
+        SoundManager.stopAudio();
+        sounds.clear();
+    }
+    
+    public void addSound(Audible a) {
+        sounds.add(a);
     }
     
     public void refundUpgrades() {

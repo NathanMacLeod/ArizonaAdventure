@@ -55,6 +55,14 @@ public class LevelSelect extends ImagePanel {
 
         };
         
+        Button level4 = new Button(button, buttonHover, 856, 230, 60, 36) {
+            
+            public void doAction(ArizonaAdventure game) {
+                game.loadLevel(4);
+            }
+
+        };
+        
         Button upgradeButton = new Button(upgrade, upgradeHover, 0, 530, 190, 70) {
             public void doAction(ArizonaAdventure game) {
                 game.loadMenu(MenuState.Upgrades);
@@ -70,6 +78,9 @@ public class LevelSelect extends ImagePanel {
         }
         if(maxLevel >= 3) {
             buttons.add(level3);
+        }
+        if(maxLevel >= 4) {
+            buttons.add(level4);
         }
     }
     

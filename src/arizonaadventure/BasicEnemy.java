@@ -14,6 +14,7 @@ import java.util.ArrayList;
  */
 public class BasicEnemy extends KillableEntity {
     private static Sprite sprite = null;
+    private static final String fireSound = "pew.wav";
     private static Sprite bulletSprite;
     
     private double speed;
@@ -31,7 +32,8 @@ public class BasicEnemy extends KillableEntity {
     
     private void shoot(double timePassed, ArizonaAdventure game) {
         fire.updateTimer(timePassed);
-        if(fire.tryToFire()) {
+        if(fire.tryToFire() && x < game.getGameWidth()) {
+            SoundManager.play(fireSound);
             Player player = game.getPlayer();
             Vector2D velocity = new Vector2D(player.x - x, player.y - y).getUnitVector().scale(250);
             game.addNewProjectile(new BasicEnemyBullet(x, y, velocity, bulletSprite));

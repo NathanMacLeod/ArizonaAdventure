@@ -12,6 +12,7 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class RocketEnemy extends KillableEntity {
+    private static final String rocketLaunch = "rocketLaunch.wav";
     private static Sprite sprite = null;
     
     private double speed;
@@ -69,6 +70,7 @@ public class RocketEnemy extends KillableEntity {
             if(rocketCount < rocketsToFire) {
                 rocketFire.updateTimer(timePassed);
                 if(rocketFire.tryToFire()) {
+                    SoundManager.play(rocketLaunch);
                     Player player = game.getPlayer();
                     Vector2D dir = new Vector2D(player.x - x, player.y - y);
                     game.addNewProjectile(new EnemyRocket(x, y, dir.getAngle(), 25));

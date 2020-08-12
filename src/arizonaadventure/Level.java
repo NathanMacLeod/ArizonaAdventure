@@ -25,6 +25,9 @@ public abstract class Level implements Updatable, Drawable {
     private boolean zoom;
     private boolean playerDead;
     
+    private Music backgroundMusic;
+    private static final String victoryJingle = "victoryjingle.wav";
+    
     protected Boss boss;
     protected boolean bossFight;
     private boolean bossDead;
@@ -35,6 +38,7 @@ public abstract class Level implements Updatable, Drawable {
     protected BufferedImage background;
     protected BufferedImage foremidGround;
     
+    private boolean queueTransition;
     private boolean toTransition;
     protected boolean inTransition;
     protected int transWidth;
@@ -54,7 +58,7 @@ public abstract class Level implements Updatable, Drawable {
     private double middleX;
     private double backX;
     
-    public Level(int width, int height) {
+    public Level(int width, int height, ArizonaAdventure game) {
         foremidGround = null;
         panSpeed = 600;
         setWaves();
@@ -70,6 +74,19 @@ public abstract class Level implements Updatable, Drawable {
         postBossWait.resetTimer();
         zoom = false;  
         playerDead = false;
+        backgroundMusic = setTrack();
+        game.addSound(backgroundMusic);
+        if(backgroundMusic != null) {
+            backgroundMusic.play();
+        }
+    }
+    
+    public void unload() {
+        backgroundMusic.close();
+    }
+    
+    protected Music setTrack() {
+        return null;
     }
     
     protected boolean finalWave() {
@@ -112,6 +129,10 @@ public abstract class Level implements Updatable, Drawable {
                toTransition = false;
                 inTransition = true;
             }
+        }
+        else if(queueTransition && backgroundWidth - middleX > 1000) {
+            queueTransition = false;
+            toTransition = true;
         }
         
         if(backX > backgroundWidth) {
@@ -174,7 +195,7 @@ public abstract class Level implements Updatable, Drawable {
     public void transition() {
         //Transitions sensitive to timing, can teleport onscreen with current implementation
         //to fix play with spawn period timings
-        toTransition = true;
+        queueTransition = true;
     }
     
     public void drawForeMid(Graphics2D g) {
@@ -202,9 +223,10 @@ public abstract class Level implements Updatable, Drawable {
         }
     }
     
-    public void playerDead() {
+    public void playerDead(ArizonaAdventure game) {
         t = 3;
         playerDead = true;
+        game.addEffect(new ColorFlash(2, 10000, width, height, 0.0f, 0.0f, 0.0f));
     }
     
     public void update(double timePassed, ArizonaAdventure game) {
@@ -225,6 +247,7 @@ public abstract class Level implements Updatable, Drawable {
         if(bossDead) {
             postBossWait.updateTimer(timePassed);
             if(postBossWait.tryToFire()) {
+                SoundManager.play(victoryJingle);
                 t = 3;
                 zoom = true;
                 game.getPlayer().startZoom();
@@ -236,11 +259,13 @@ public abstract class Level implements Updatable, Drawable {
             }
             if(boss.bossDefeated()) {
                 bossDead = true;
+                boss.endMusic();
             }
         }
         else if(!bossFight) {
             if(currentWave == null) {
                 if(currentIndex >= waves.size()) {
+                    backgroundMusic.fadeOut(6);
                     bossFight = true;
                     boss = spawnBoss(game);
                 }

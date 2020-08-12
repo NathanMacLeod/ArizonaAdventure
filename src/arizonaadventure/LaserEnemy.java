@@ -13,9 +13,10 @@ import java.awt.Color;
  * @author macle
  */
 public class LaserEnemy extends KillableEntity {
-    private Sprite sprite;
-    private Sprite laserStart;
-    private Sprite laserSect;
+    private static final String laser = "laser.wav";
+    private static Sprite sprite;
+    private static Sprite laserStart;
+    private static Sprite laserSect;
     
     private static double width = 65;
     private double speed;
@@ -31,6 +32,7 @@ public class LaserEnemy extends KillableEntity {
     private CooldownTimer chargeTime;
     private CooldownTimer fireTime;
     private CooldownTimer cooldown;
+    private int soundID = -1;
     
     public LaserEnemy(double x, double y) {
         super(x, y, generateSquareHitbox(width, 25), 350, 70);
@@ -67,12 +69,17 @@ public class LaserEnemy extends KillableEntity {
             if(chargeTime.tryToFire()) {
                 fireTime.resetTimer();
                 charging = false;
+                soundID = SoundManager.play(laser);
                 firing = true;
             }
         }
         else if(firing) {
             fireTime.updateTimer(timePassed);
+            
             if(fireTime.tryToFire()) {
+                if(soundID != -1) {
+                    SoundManager.terminateSFX(soundID);
+                }
                 firing = false;
                 cooldown.resetTimer();
             }
@@ -108,6 +115,13 @@ public class LaserEnemy extends KillableEntity {
                 turn *= -1;
             }
             moveEntity(0, 0, turn);
+        }
+    }
+    
+    public void takeDamage(double damage) {
+        super.takeDamage(damage);
+        if(isDead() && soundID != -1) {
+            SoundManager.terminateSFX(soundID);
         }
     }
     

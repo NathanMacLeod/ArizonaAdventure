@@ -16,9 +16,18 @@ import java.io.IOException;
  */
 public class Level1 extends Level {
     
-    public Level1(int width, int height) {
-        super(width, height);
+    public Level1(int width, int height, ArizonaAdventure game) {
+        super(width, height, game);
     } 
+    
+    public void unload() {
+        super.unload();
+        TrainBoss.unloadAssets();
+    }
+    
+    protected Music setTrack() {
+        return new Music("lvl1bgtheme.wav");
+    }
     
     protected void preloadSprites() {
         try {

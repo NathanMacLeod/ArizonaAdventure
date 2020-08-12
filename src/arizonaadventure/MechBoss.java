@@ -41,9 +41,11 @@ public class MechBoss extends KillableEntity implements Boss {
     private static double buddyBallSpeed = 215;
     private static double buddyBallRadius = 45;
     private static double buddyBallFormTime = 1.5;
+    private static int maxLaserSounds = 2;
     private double buddyBallT;
     private double buddyDCos;
     private double buddyDSin;
+    private int buddiesLasering;
     private Vector2D buddyBallCoord;
     private Vector2D buddyBallV;
     private ArrayList<LaserBuddy> buddyBall;
@@ -82,6 +84,16 @@ public class MechBoss extends KillableEntity implements Boss {
     private static Sprite laserStart;
     private static Sprite laserSect;
     
+    private static Music chaseTheme;
+    private static Music secondTheme;
+    private boolean secondThemeStarted = false;
+    private static final String bigBoom = "nuke.wav";
+    private static final String shotgunSound = "shotgun.wav";
+    private static final String stomp = "stomp.wav";
+    private static final String rocketSound = "rocketlaunch.wav";
+    private static final String buddyBasic = "blaster.wav";
+    private static final String laser = "laser.wav";
+    
     private GunState gunState;
     private BossState state;
     private BuddyPattern buddyState;
@@ -97,8 +109,10 @@ public class MechBoss extends KillableEntity implements Boss {
     private CooldownTimer buddyCooldown;
     private CooldownTimer quickBuddyFireRate;
     private CooldownTimer laserPatternRate;
+    private CooldownTimer secondThemeDelay;
     private boolean canFlash = true;
-    boolean onRight;
+    private boolean onRight;
+    private boolean playStomp;
     
     //shotgun stuff
     private double shotCone = Math.PI/12;
@@ -143,6 +157,8 @@ public class MechBoss extends KillableEntity implements Boss {
         buddyCooldown = new CooldownTimer(1.0/8);
         quickBuddyFireRate = new CooldownTimer(2);
         laserPatternRate = new CooldownTimer(0.25);
+        secondThemeDelay = new CooldownTimer(1/4.0);
+        secondThemeDelay.resetTimer();
         buddies = new ArrayList();
         buddyBall = new ArrayList();
         nBuddies = 8;
@@ -155,6 +171,9 @@ public class MechBoss extends KillableEntity implements Boss {
         
         flip();
         game.addNewEnemy(this);
+        game.addSound(chaseTheme);
+        game.addSound(secondTheme);
+        chaseTheme.fadeIn(3.3);
     }
     
     private enum BuddyPattern {
@@ -171,12 +190,14 @@ public class MechBoss extends KillableEntity implements Boss {
     
     public void dissapearToLeft() {
         state = BossState.DissapearToLeft;
+        chaseTheme.fadeOut(8);
     }
     
     public void appearOnRight(ArizonaAdventure game) {
         flip();
         moveEntity(game.getGameWidth() - spawnX - x, 0, 0);
         state = BossState.FirstWalkOnRight;
+        chaseTheme.fadeIn(4);
     }
     
     public static double getWalkSpeed() {
@@ -199,8 +220,34 @@ public class MechBoss extends KillableEntity implements Boss {
         laserBolt = new Sprite("laserbolt.png", 50);
         laserStart = new Sprite("laserStartSection.png", (int) laserWidth);
         laserSect = new Sprite("laserSection.png", (int) laserWidth);
+        
+        chaseTheme = new Music("sirkoto51bosstheme.wav");
+        secondTheme = new Music("boss3Theme2.wav");
     }
     
+    public static void unloadAssets() {
+        headS = null;
+        gunS = null;
+        gunFire = null;
+        rearArmS = null;
+        legS = null;
+        slug = null;
+        shotPellet = null;
+        bomb = null;
+        shrapnel = null;
+        rocket = null;
+        hoverHead = null;
+        laserCan = null;
+        laserBolt = null;
+        laserStart = null;
+        laserSect = null;
+        
+        chaseTheme.close();
+        chaseTheme = null;
+        secondTheme.close();
+        secondTheme = null;
+    }
+            
     private void flip() {
         headS.flip();
         gunS.flip();
@@ -261,6 +308,7 @@ public class MechBoss extends KillableEntity implements Boss {
                     curr.y = nY;
                     game.addNewProjectile(new BasicEnemyBullet(x, y, 25, 8, new Vector2D(curr.x, curr.y).scale(0.7 + 0.3 * Math.random()), 30, shrapnel));
                 }
+                SoundManager.play(explosion);
                 game.addExplosion(new ExplosionEffect(x, y, 150, 0.25));
             }
             
@@ -297,7 +345,10 @@ public class MechBoss extends KillableEntity implements Boss {
                 double barrelX = x + headX + gunX + gunR * Math.cos(gunAng - gunA);
                 double barrelY = y + headY + gunY + gunR * Math.sin(gunAng - gunA);
                 Vector2D dir = new Vector2D(p.x - barrelX, p.y - barrelY).getUnitVector();
-                game.addNewProjectile(new BasicEnemyBullet(barrelX, barrelY, 55, 25, dir.scale(500), 40, slug));
+                Projectile proj = new BasicEnemyBullet(barrelX, barrelY, 55, 25, dir.scale(500), 40, slug);
+                game.addNewProjectile(proj);
+                if(!proj.entityOutOfBounds(game))
+                    SoundManager.play(shotgunSound);
             }
             return;
         }
@@ -340,9 +391,11 @@ public class MechBoss extends KillableEntity implements Boss {
                 
                 switch(gunState) {
                     case Slug:
+                        SoundManager.play(shotgunSound);
                         game.addNewProjectile(new BasicEnemyBullet(barrelX, barrelY, 55, 25, dir.scale(830), 40, slug));
                         break;
                     case Shotgun:
+                        SoundManager.play(shotgunSound);
                         Vector2D curr = dir.scale(850);
                         double nX = curr.x * shotConeCos - curr.y * shotConeSin;
                         double nY = curr.x * shotConeSin + curr.y * shotConeCos;
@@ -357,6 +410,7 @@ public class MechBoss extends KillableEntity implements Boss {
                         }
                         break;
                     case Bomb:
+                        SoundManager.play(shotgunSound);
                         double air = 120;
                         double detHeight = 200;
                         double yH = p.y - detHeight - air - barrelY;
@@ -378,6 +432,7 @@ public class MechBoss extends KillableEntity implements Boss {
                     case Rocket:
                         canFlash = false;
                         game.addNewProjectile(new EnemyRocket(x + headX + rocketX, y + headY + rocketY, -Math.PI * 3/4.0, 450, Math.PI * 2/3.0, 1.4, 35, rocket));
+                        SoundManager.play(rocketSound);
                         break;
                     }
                 
@@ -416,12 +471,18 @@ public class MechBoss extends KillableEntity implements Boss {
                 double t = life % (stridePeriod * 2 + pausePeriod * 2);
                 double effectiveT ;
                 if(t > stridePeriod && t < stridePeriod + pausePeriod) {
+                    if(timePassed - t + stridePeriod > 0) {
+                        SoundManager.play(stomp);
+                    }
                     effectiveT = stridePeriod;
                 }
                 else if(t > stridePeriod + pausePeriod && t < stridePeriod * 2 + pausePeriod) {
                     effectiveT = t - pausePeriod;
                 }
                 else if(t > stridePeriod * 2 + pausePeriod) {
+                    if(timePassed - t + stridePeriod * 2 + pausePeriod > 0) {
+                        SoundManager.play(stomp);
+                    }
                     effectiveT = stridePeriod * 2;
                 }
                 else {
@@ -492,6 +553,7 @@ public class MechBoss extends KillableEntity implements Boss {
         private boolean fireLaser;
         private double laserTime;
         private int number;
+        private int laserSFXID = -1;
         
         public LaserBuddy(int n) {
             super(MechBoss.this.x, MechBoss.this.y, generateSquareHitbox(buddyWidth, buddyHeight), 1200, 60);
@@ -523,10 +585,20 @@ public class MechBoss extends KillableEntity implements Boss {
             accelerateToCoord(coord.x, coord.y, 1.5, true);
             fireLaser = false;
             chargeLaser = false;
+            if(laserSFXID != -1) {
+                SoundManager.terminateSFX(laserSFXID);
+            }
         }
         
         public void setOrientation(double theta) {
             moveEntity(0, 0, theta - orientation);
+        }
+        
+        public void takeDamage(double damage) {
+            super.takeDamage(damage);
+            if(isDead() && laserSFXID != -1) {
+                SoundManager.terminateSFX(laserSFXID);
+            }
         }
         
         public void update(double timePassed, ArizonaAdventure game) {
@@ -548,6 +620,7 @@ public class MechBoss extends KillableEntity implements Boss {
                     if(MechBoss.this.buddyState == BuddyPattern.Cooldown) {
                         fire.updateTimer(timePassed);
                         if(fire.tryToFire()) {
+                            SoundManager.play(buddyBasic);
                             Vector2D dir = new Vector2D(p.x - x, p.y - y).getUnitVector().scale(300);
                             game.addNewProjectile(new BasicEnemyBullet(x, y, dir, laserBolt));
                         }
@@ -582,9 +655,18 @@ public class MechBoss extends KillableEntity implements Boss {
                             }
                             else if(laserTime <= 1.5) {
                                 chargeLaser = false;
+                                if(!fireLaser){
+                                    buddiesLasering++;
+                                    laserSFXID = SoundManager.play(laser);
+                                }
                                 fireLaser = true;
                             }
                             else {
+                                if(fireLaser && laserSFXID != -1) {
+                                    buddiesLasering--;
+                                    SoundManager.terminateSFX(laserSFXID);
+                                    laserSFXID = -1;
+                                }
                                 fireLaser = false;
                                 chargeLaser = false;
                                 returnToCircle(game);
@@ -598,9 +680,18 @@ public class MechBoss extends KillableEntity implements Boss {
                             }
                             else if(laserTime <= 2) {
                                 chargeLaser = false;
+                                if(!fireLaser && buddiesLasering < maxLaserSounds) {
+                                    buddiesLasering++;
+                                    laserSFXID = SoundManager.play(laser);
+                                }
                                 fireLaser = true;
                             }
                             else {
+                                if(fireLaser && laserSFXID != -1) {
+                                    buddiesLasering--;
+                                    SoundManager.terminateSFX(laserSFXID);
+                                    laserSFXID = -1;
+                                }
                                 fireLaser = false;
                                 chargeLaser = false;
                             }
@@ -609,10 +700,19 @@ public class MechBoss extends KillableEntity implements Boss {
                             laserTime += timePassed;
                             laserTime %= 3.0;
                             if(laserTime <= 1.6) {
+                                if(fireLaser && laserSFXID != -1) {
+                                    SoundManager.terminateSFX(laserSFXID);
+                                    buddiesLasering--;
+                                    laserSFXID = -1;
+                                }
                                 fireLaser = false;
                                 chargeLaser = true;
                             }
                             else {
+                                if(!fireLaser && buddiesLasering < maxLaserSounds) {
+                                    buddiesLasering++;
+                                    laserSFXID = SoundManager.play(laser);
+                                }
                                 fireLaser = true;
                                 chargeLaser = false;
                             }
@@ -794,6 +894,7 @@ public class MechBoss extends KillableEntity implements Boss {
                     buddyCooldown.updateTimer(timePassed);
                     if(buddyCooldown.tryToFire()) {
                         buddyI = 0;
+                        buddiesLasering = 0;
                         
                         BuddyPattern newPattern = null;
                         do {
@@ -978,10 +1079,13 @@ public class MechBoss extends KillableEntity implements Boss {
                 double chosenHeight = ((state == BossState.Fly)? flyBoxHeight : this.height);
                 double yC = y - chosenHeight/2.0 + Math.random() * chosenHeight;
                 game.addExplosion(new ExplosionEffect(xC, yC, (int) (100 + Math.random() * 60), 0.35));
+                SoundManager.play(explosion);
                 nExplosions--;
                 if(nExplosions == 0 && state != BossState.Fly) {
                     game.addExplosion(new ExplosionEffect(x, y, size, 0.5));
-                    game.addEffect(new ColorFlash(0.5, 2.0, (int) game.getGameWidth(), (int) game.getGameHeight(), 1.0f, 1.0f, 1.0f));
+                    game.addEffect(new ColorFlash(0.5, 5.0, (int) game.getGameWidth(), (int) game.getGameHeight(), 1.0f, 1.0f, 1.0f));
+                    SoundManager.play(bigBoom);
+                    chaseTheme.fadeOut(3);
                 }
             }
         }
@@ -990,6 +1094,13 @@ public class MechBoss extends KillableEntity implements Boss {
             move(timePassed, game);
             if(state == BossState.Fly) {
                 manageBuddies(timePassed, game);
+                if(!secondThemeStarted) {
+                    secondThemeDelay.updateTimer(timePassed);
+                    if(secondThemeDelay.tryToFire()) {
+                        secondTheme.play();
+                        secondThemeStarted = true;
+                    }
+                }
             }
             else {
                 aim(game);
@@ -1002,6 +1113,10 @@ public class MechBoss extends KillableEntity implements Boss {
                 } 
             }
         }
+    }
+    
+    public void endMusic() {
+        secondTheme.fadeOut(6.0);
     }
     
     private boolean exploding() {

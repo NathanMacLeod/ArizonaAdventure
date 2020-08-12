@@ -30,6 +30,10 @@ public class Projectile extends MoveingEntity {
         return expired;
     }
     
+    public void deleteActions() {
+        
+    }
+    
     protected void addExplosion(ArizonaAdventure game) {
         game.addExplosion(new ExplosionEffect(x, y, (int) (size * 1), 0.1));
     }

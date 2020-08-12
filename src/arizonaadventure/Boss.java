@@ -17,4 +17,6 @@ public interface Boss extends Updatable {
     
     public double getHealthPercentage();
     
+    public void endMusic();
+    
 }

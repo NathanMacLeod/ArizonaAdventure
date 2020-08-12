@@ -11,7 +11,7 @@ import java.util.ArrayList;
  * @author macle
  */
 public class KillableEntity extends MoveingEntity {
-    
+    protected static final String explosion = "bullethit.wav";
     protected double hp;
     private double size;
     protected boolean nonPlayerCollidable;
@@ -27,8 +27,13 @@ public class KillableEntity extends MoveingEntity {
         return nonPlayerCollidable;
     }
     
+    protected void playExplodeSound() {
+        SoundManager.play(explosion);
+    }
+    
     public void explode(ArizonaAdventure game) {
         game.addExplosion(new ExplosionEffect(x, y, (int) (size * 1.5), 0.25));
+        playExplodeSound();
     }
     
     public void takeDamage(double damage) {

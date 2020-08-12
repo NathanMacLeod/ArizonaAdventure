@@ -13,6 +13,7 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class PrimaryFireBullet extends Projectile {
+    private static final String boom = "lowcrack.wav";
     private static Sprite sprite = null;
     
     public PrimaryFireBullet(double x, double y, double damage) {
@@ -23,6 +24,12 @@ public class PrimaryFireBullet extends Projectile {
         sprite = new Sprite(sprite);
     }
     
+    protected void addExplosion(ArizonaAdventure game) {
+        super.addExplosion(game);
+        SoundManager.play(boom);
+        
+    }
+     
     public void draw(Graphics2D g) {
         //super.draw(g);
         sprite.draw(g, x, y, orientation);

@@ -13,6 +13,7 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class AuraEnemy extends KillableEntity {
+    private static final String zap = "zap.wav";
     private static Sprite sprite = null;
     private static Sprite bulletSprite;
     
@@ -39,7 +40,8 @@ public class AuraEnemy extends KillableEntity {
     
     private void shoot(double timePassed, ArizonaAdventure game) {
         fire.updateTimer(timePassed);
-        if(fire.tryToFire()) {
+        if(fire.tryToFire() && !entityOutOfBounds(game)) {
+            SoundManager.play(zap);
             Vector2D curr = new Vector2D(0, -projVel);
             for(int i = 0; i < nProj; i++) {
                 game.addNewProjectile(new BasicEnemyBullet(x, y, new Vector2D(curr.x, curr.y), bulletSprite));

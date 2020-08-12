@@ -13,6 +13,8 @@ import java.util.ArrayList;
  * @author macle
  */
 public class PlayerRocket extends Projectile {
+    private static final String igniteSound = "playermissile.wav";
+    private static final String boom = "missileexplode.wav";
     private static Sprite sprite = null;
     private static Sprite preignite = null;
     
@@ -28,6 +30,7 @@ public class PlayerRocket extends Projectile {
     private double lockAng = Math.PI/6;
     private double cosLockAng;
     private double turnRate = 1.5;
+    private int sfxID = -1;
     
     public PlayerRocket(double x, double y, double damage) {
         super(x, y, generateSquareHitbox(30, 7), new Vector2D(0, 0), damage, 40, true);
@@ -53,6 +56,17 @@ public class PlayerRocket extends Projectile {
             if (currVelocity > maxSpeed) {
                 currVelocity = maxSpeed;
             }
+        }
+    }
+    
+    protected void addExplosion(ArizonaAdventure game) {
+        super.addExplosion(game);
+         SoundManager.play(boom);
+    }
+    
+    public void deleteActions() {
+        if(sfxID != -1) {
+            SoundManager.terminateSFX(sfxID);
         }
     }
     
@@ -122,6 +136,9 @@ public class PlayerRocket extends Projectile {
     
     public void update(double timePassed, ArizonaAdventure game) {
         liveTime += timePassed;
+        if(liveTime > deadTime && liveTime - deadTime < timePassed) {
+            sfxID =  SoundManager.play(igniteSound);
+        } 
         if(currVelocity < maxSpeed && currEjectVelocity > 0) {
             accelerate(timePassed);
         }

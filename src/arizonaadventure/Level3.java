@@ -23,9 +23,13 @@ public class Level3 extends Level{
     private boolean bossReapper = false;
     private boolean transitioned = false;
     
-    public Level3(int width, int height) {
-        super(width, height);
+    public Level3(int width, int height, ArizonaAdventure game) {
+        super(width, height, game);
     } 
+    
+    protected Music setTrack() {
+        return new Music("lvl3bgtheme.wav");
+    }
     
     protected void preloadSprites() {
         try {
@@ -41,9 +45,8 @@ public class Level3 extends Level{
             transWidth = transMid.getWidth();
             backgroundWidth = background.getWidth();
         } catch(IOException e) {
-            System.out.println("failed to read level 1 backgrounds");
+            System.out.println("failed to read level 3 backgrounds");
         }
-        panSpeed = 7.0/2 * MechBoss.getWalkSpeed();
         backMultiplier = 0.06;
         MechBoss.loadSprites();
     }
@@ -137,12 +140,13 @@ public class Level3 extends Level{
         waves.add(new SpawnPeriod(3, 1, new int[] {0, 0, 0, 0, 1, 0, 0, 0}));
         waves.add(new SpawnPeriod(75, 2.2, new int[] {8, 14, 4, 2, 0, 6, 5, 2}));
         waves.add(new SpawnPeriod(3, 1, new int[] {0, 0, 0, 0, 1, 0, 0, 0}));
-        waves.add(new SpawnPeriod(80, 1, new int[] {0, 40, 0, 0, 0, 0, 0, 0}));
+        waves.add(new SpawnPeriod(50, 1, new int[] {0, 25, 0, 0, 0, 0, 0, 0}));
     }
     
     protected Boss spawnBoss(ArizonaAdventure game) {
         spawnSpikes(game);
         MechBoss b = new MechBoss(game);
+        panSpeed = 7.0/2 * MechBoss.getWalkSpeed();
         //b.appearOnRight(game);
         return b;
     }

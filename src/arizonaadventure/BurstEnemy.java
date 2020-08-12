@@ -15,6 +15,7 @@ import java.awt.Graphics2D;
 public class BurstEnemy extends KillableEntity {
     private static Sprite sprite = null;
     private static Sprite bulletSprite;
+    private static final String fireSound = "pew.wav";
     private CooldownTimer burst;
     private final int burstSize = 4;
     private int burstCount = 0;
@@ -45,6 +46,7 @@ public class BurstEnemy extends KillableEntity {
             else {
                 fire.updateTimer(timePassed);
                 if(fire.tryToFire()) {
+                    SoundManager.play(fireSound);
                     burstCount--;
                     Player player = game.getPlayer();
                     Vector2D velocity = new Vector2D(player.x - x, player.y - y).getUnitVector().scale(250);

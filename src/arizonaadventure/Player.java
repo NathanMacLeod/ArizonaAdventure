@@ -16,6 +16,9 @@ import java.awt.Graphics2D;
 public class Player extends KillableEntity {   
     private static Sprite sprite = null;
     private static Sprite halfSprite = null;
+    private static final String primary = "playerpew.wav";
+    private static final String damageTaken = "damage.wav";
+    private static final String healSound = "heal.wav";
     private static boolean spriteMini;
     
     private static double defWidth = 90;
@@ -82,6 +85,7 @@ public class Player extends KillableEntity {
     private void shoot(double timePassed, ArizonaAdventure game) {
         primaryFire.updateTimer(timePassed);
         if(primaryFire.tryToFire()) {
+            //primary.play();
             double bulletSpacing = 25;
             double space = nProjectiles * bulletSpacing;
             
@@ -111,6 +115,7 @@ public class Player extends KillableEntity {
             if(this.hitboxesIntersecting(p)) {
                 p.setConsumed();
                 if(p instanceof HealthPickup) {
+                    SoundManager.play(healSound);
                     hp = maxHP;
                 }
             }
@@ -118,7 +123,8 @@ public class Player extends KillableEntity {
     }
     
     public void takeDamage(double damage) {
-        if(!invincible) {
+        if(!invincible && false) {
+            SoundManager.play(damageTaken);
             super.takeDamage(damage);
             invincible = true;
             invincibleTime.resetTimer();

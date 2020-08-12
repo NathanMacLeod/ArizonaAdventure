@@ -46,6 +46,14 @@ public class TrainBoss implements Boss {
     private static Sprite sierraCar;
     private static Sprite pepsicoCar;
     
+    private static final String pew = "pewpew.wav";
+    private static final String burstFire = "pew.wav";
+    private static final String rocket = "rocketlaunch.wav";
+    private static final String spray = "spray.wav";
+    private static final String boil = "boilsound.wav";
+    private static Music trainSounds;
+    private static Music music;
+    
     public static void loadSprites() {
         pepsiCar = new Sprite("pepsicar.png", 500);
         mtwndewCar = new Sprite("mtwndewcar.png", 500);
@@ -68,6 +76,38 @@ public class TrainBoss implements Boss {
         basicBullet = new Sprite("mtwndew.png", 32);
         missileBody = new Sprite("pepsiBase.png", (int) (60 * 1.25));
         missileTurret = new Sprite("pepsirocketinert.png", (int) (60 * 2));
+
+        trainSounds = new Music("trainsoundloop.wav");
+        music = new Music("boss1music.wav");
+    }
+    
+    public static void unloadAssets() {
+        pepsiCar = null;
+        mtwndewCar = null;
+        liptonCar = null;
+        sierraCar = null;
+        pepsicoCar = null;
+        burstBullet1 = null;
+        burstBullet2 = null;
+        burstBullet3 = null;
+        burstBody = null;
+        burstGun = null;
+        basicBody = null;
+        basicTurret = null;
+        lobBody = null;
+        lobTurret = null;
+        lobBullet = null;
+        sprayBody = null;
+        sprayTurret = null;
+        sprayBullet = null;
+        basicBullet = null;
+        missileBody = null;
+        missileTurret = null;
+        
+        trainSounds.close();
+        music.close();
+        trainSounds = null;
+        music = null;
     }
     
     public TrainBoss(ArizonaAdventure game) {
@@ -109,6 +149,15 @@ public class TrainBoss implements Boss {
             }
             game.addNewEnemy(cars[i]);
         }
+        
+        trainSounds.fadeIn(3);
+        music.fadeIn(5);
+        game.addSound(trainSounds);
+        game.addSound(music);
+    }
+    
+    public void endMusic() {
+        music.fadeOut(6.0);
     }
     
     public double getHealthPercentage() {
@@ -146,7 +195,9 @@ public class TrainBoss implements Boss {
         public void update(double timePassed, ArizonaAdventure game) {
             Player p = game.getPlayer();
             playerDir = new Vector2D(p.x - x, p.y - y).getAngle();
-            shoot(timePassed, game);
+            if(!this.entityOutOfBounds(game)) {
+                shoot(timePassed, game);
+            }
         }
     }
     
@@ -165,6 +216,7 @@ public class TrainBoss implements Boss {
         public void shoot(double timePassed, ArizonaAdventure game) {
             fire.updateTimer(timePassed);
             if(fire.tryToFire()) {
+                SoundManager.play(rocket);
                 Player player = game.getPlayer();
                 Vector2D dir = new Vector2D(player.x - x, player.y - y);
                 game.addNewProjectile(new EnemyRocket(x, y, dir.getAngle(), 25));
@@ -188,6 +240,7 @@ public class TrainBoss implements Boss {
         public void shoot(double timePassed, ArizonaAdventure game) {
             fire.updateTimer(timePassed);
             if(fire.tryToFire()) {
+                SoundManager.play(pew);
                 Player player = game.getPlayer();
                 Vector2D velocity = new Vector2D(player.x - x, player.y - y).getUnitVector().scale(350);
                 double rX = r * Math.cos(orientation - Math.PI/2.0);
@@ -223,6 +276,7 @@ public class TrainBoss implements Boss {
         public void shoot(double timePassed, ArizonaAdventure game) {
             fire.updateTimer(timePassed);
             if(fire.tryToFire()) {
+                SoundManager.play(spray);
                 Player player = game.getPlayer();
                 Vector2D curr = new Vector2D(player.x - x, player.y - y).getUnitVector().scale(250);
                 double nX = curr.x * coneCos - curr.y * coneSin;
@@ -269,6 +323,7 @@ public class TrainBoss implements Boss {
         public void shoot(double timePassed, ArizonaAdventure game) {
             fire.updateTimer(timePassed);
             if(fire.tryToFire()) {
+                SoundManager.play(boil);
                 Player p = game.getPlayer();
                 double air = 120;
                 double yH = p.y - air - y;
@@ -312,6 +367,7 @@ public class TrainBoss implements Boss {
             if(burstCount != 0) {
                 fire.updateTimer(timePassed);
                 if(fire.tryToFire()) {
+                    SoundManager.play(burstFire);
                     burstCount--;
                     Player player = game.getPlayer();
                     Vector2D velocity = new Vector2D(player.x - x, player.y - y).getUnitVector().scale(250);
@@ -407,6 +463,7 @@ public class TrainBoss implements Boss {
                     double xC = x - width/2.0 + Math.random() * width;
                     double yC = y - height/2.0 + Math.random() * height;
                     game.addExplosion(new ExplosionEffect(xC, yC, (int) (100 + Math.random() * 60), 0.35));
+                    SoundManager.play(explosion);
                     nExplosions--;
                 }
             }
@@ -429,6 +486,9 @@ public class TrainBoss implements Boss {
     
     public void update(double timePassed, ArizonaAdventure game) {
         life += timePassed;
+        trainSounds.update(timePassed, game);
+        music.update(timePassed, game);
+        
         if(currentCar == cars.length) {
             return; //all cars dead
         }
@@ -437,6 +497,7 @@ public class TrainBoss implements Boss {
             movingCars = true;
             currentCar++;
             if(currentCar == cars.length) {
+                trainSounds.stopAudio();
                 return; //all cars dead
             }
         }

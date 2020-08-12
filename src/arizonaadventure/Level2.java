@@ -16,9 +16,18 @@ import javax.imageio.ImageIO;
  */
 public class Level2 extends Level {
     
-    public Level2(int width, int height) {
-        super(width, height);
+    public Level2(int width, int height, ArizonaAdventure game) {
+        super(width, height, game);
     } 
+    
+    public void unload() {
+        super.unload();
+        SubBoss.unloadAssets();
+    }
+    
+    protected Music setTrack() {
+        return new Music("lvl2bgtheme.wav");
+    }
     
     protected void preloadSprites() {
         try {
@@ -27,7 +36,7 @@ public class Level2 extends Level {
             middleground = ImageIO.read(new File("./sprites/lvl2mg.png"));
             backgroundWidth = background.getWidth();
         } catch(IOException e) {
-            System.out.println("failed to read level 1 backgrounds");
+            System.out.println("failed to read level 2 backgrounds");
         }
         SubBoss.loadSprites();
     }

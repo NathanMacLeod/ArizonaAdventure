@@ -13,6 +13,7 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class FlyingTank extends KillableEntity {
+    private static final String boom = "cannonboom.wav";
     private static Sprite sprite = null;
     private static Sprite bulletSprite;
     private static Sprite gun = null;
@@ -49,7 +50,8 @@ public class FlyingTank extends KillableEntity {
         fire.updateTimer(timePassed);
         Player player = game.getPlayer();
         gunAng = new Vector2D(player.x - x, player.y - y).getAngle();
-        if(fire.tryToFire()) {
+        if(fire.tryToFire() && !entityOutOfBounds(game)) {
+            SoundManager.play(boom);
             double dist =  Math.sqrt(new Vector2D(player.x - x, player.y - y).getMagnitudeSquared());
             Vector2D velocity = new Vector2D(player.x - x, player.y - y).scale(250/dist);
             game.addNewProjectile(new ExplodingShell(x + gunX + Math.cos(gunAng) * gunR, y + gunY + Math.sin(gunAng) * gunR, velocity, (dist - gunR)/250));
@@ -84,6 +86,7 @@ public class FlyingTank extends KillableEntity {
                 curr.y = newY;
             }
             game.addExplosion(new ExplosionEffect(x, y, 60, 0.15));
+            SoundManager.play(explosion);
         }
         
         public void update(double timePassed, ArizonaAdventure game) {

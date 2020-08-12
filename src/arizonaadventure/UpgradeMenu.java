@@ -20,6 +20,8 @@ import java.util.ArrayList;
  */
 public class UpgradeMenu extends ImagePanel {
     
+    private static final String chching = "chching.wav";
+    
     public UpgradeMenu(ArizonaAdventure game) {  
         super();
         BufferedImage button = null;
@@ -45,6 +47,7 @@ public class UpgradeMenu extends ImagePanel {
         UpgradeChoice fireRate = new UpgradeChoice(button, buttonHover, 100, 150, 70, 70, 1, "Fire rate", "Increase fire rate by 0.33/s") {
             public void doAction(ArizonaAdventure game) {
                 if(canAfford(game)) {
+                    SoundManager.play(chching);
                     game.getUpgrades().fireRate++;
                     game.subTokens(getCost());
                 }
@@ -53,6 +56,7 @@ public class UpgradeMenu extends ImagePanel {
         UpgradeChoice missiles = new UpgradeChoice(button, buttonHover, 100, 250, 70, 70, 3, "Missiles", "Periodically fire guided missiles"){
             public void doAction(ArizonaAdventure game) {
                 if(canAfford(game) && !game.getUpgrades().missiles) {
+                    SoundManager.play(chching);
                     game.getUpgrades().missiles = true;
                     game.subTokens(getCost());
                 }
@@ -61,6 +65,7 @@ public class UpgradeMenu extends ImagePanel {
         UpgradeChoice health = new UpgradeChoice(button, buttonHover, 100, 350, 70, 70, 1, "Health", "Increase health by 25%"){
             public void doAction(ArizonaAdventure game) {
                 if(canAfford(game)) {
+                    SoundManager.play(chching);
                     game.getUpgrades().health++;
                     game.subTokens(getCost());
                 }
@@ -69,6 +74,7 @@ public class UpgradeMenu extends ImagePanel {
         UpgradeChoice miniship = new UpgradeChoice(button, buttonHover, 100, 450, 70, 70, 2, "Mini Ship", "You have a decreased hitbox, but 70% HP"){
             public void doAction(ArizonaAdventure game) {
                 if(canAfford(game) && !game.getUpgrades().miniShip) {
+                    SoundManager.play(chching);
                     game.getUpgrades().miniShip = true;
                     game.subTokens(getCost());
                 }
@@ -77,6 +83,7 @@ public class UpgradeMenu extends ImagePanel {
         UpgradeChoice fireVolume = new UpgradeChoice(button, buttonHover, 500, 250, 70, 70, 5, "Fire Volume", "Fire an additional bullet"){
             public void doAction(ArizonaAdventure game) {
                 if(canAfford(game)) {
+                    SoundManager.play(chching);
                     game.getUpgrades().fireVolume++;
                     game.subTokens(getCost());
                 }
@@ -84,6 +91,7 @@ public class UpgradeMenu extends ImagePanel {
         };
         UpgradeChoice refund = new UpgradeChoice(button, buttonHover, 500, 150, 70, 70, 0, "Refund", "refund all upgrades"){
             public void doAction(ArizonaAdventure game) {
+                SoundManager.play(chching);
                 game.refundUpgrades();
             }
         };
@@ -108,7 +116,7 @@ public class UpgradeMenu extends ImagePanel {
             this.name = name;
             this.description = description;
         }
-
+        
         public boolean canAfford(ArizonaAdventure game) {
             return game.getTokens() >= cost;
         }
