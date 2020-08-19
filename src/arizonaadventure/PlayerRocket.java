@@ -15,8 +15,8 @@ import java.util.ArrayList;
 public class PlayerRocket extends Projectile {
     private static final String igniteSound = "playermissile.wav";
     private static final String boom = "missileexplode.wav";
-    private static Sprite sprite = null;
-    private static Sprite preignite = null;
+    private static Sprite sprite = new Sprite("rocket.png", (int)30 * 3);
+    private static Sprite preignite = new Sprite("rocketpreignite.png", (int)30 * 3);
     
     private KillableEntity target;
     private double maxSpeed = 800;
@@ -40,10 +40,6 @@ public class PlayerRocket extends Projectile {
         liveTime = 0;
         cosLockAng = Math.cos(lockAng);
         currEjectVelocity = ejectVelocity;
-        if(sprite == null) {
-            sprite = new Sprite("rocket.png", (int)30 * 3);
-            preignite = new Sprite("rocketpreignite.png", (int)30 * 3);
-        }
     }
    
     private void accelerate(double timePassed) {

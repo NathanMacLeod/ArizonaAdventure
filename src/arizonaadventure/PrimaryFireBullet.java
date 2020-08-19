@@ -14,13 +14,10 @@ import java.awt.Graphics2D;
  */
 public class PrimaryFireBullet extends Projectile {
     private static final String boom = "lowcrack.wav";
-    private static Sprite sprite = null;
+    private static Sprite sprite = new Sprite("playerbullet.png", (int)25);
     
     public PrimaryFireBullet(double x, double y, double damage) {
         super(x, y, generateSquareHitbox(25, 10), new Vector2D(600, 0), damage, 25, true);
-        if(sprite == null) {
-            sprite = new Sprite("playerbullet.png", (int)25);
-        }
         sprite = new Sprite(sprite);
     }
     

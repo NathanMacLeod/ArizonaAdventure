@@ -46,6 +46,7 @@ public class Level1 extends Level {
         waves.add(new SpawnPeriod(20, 3, new int[] {0, 9, 0, 0, 0, 0}));
         waves.add(new SpawnPeriod(50, 3, new int[] {10, 16, 0, 0, 0, 0}));
         waves.add(new SpawnPeriod(4, 1, new int[] {0, 0, 1, 0, 0, 0}));
+        waves.add(new SpawnPeriod(6, 1, new int[] {0, 0, 0, 0, 1, 0}));
         waves.add(new SpawnPeriod(70, 2, new int[] {14, 25, 1, 0, 0, 0}));
         waves.add(new SpawnPeriod(6, 1, new int[] {0, 0, 0, 0, 1, 0}));
     }

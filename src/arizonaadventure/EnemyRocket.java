@@ -12,7 +12,7 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class EnemyRocket extends Projectile {
-    private static Sprite masterSprite = null;
+    private static Sprite defSprite = new Sprite("pepsirocket.png", (int)(25 * 4));
     private Sprite sprite;
     
     private boolean lostLock;
@@ -28,11 +28,7 @@ public class EnemyRocket extends Projectile {
         lockAng = Math.PI/2;
         cosLockAng = Math.cos(lockAng);
         this.orientation = orientation;
-        
-        if(sprite == null) {
-            masterSprite = new Sprite("pepsirocket.png", (int)(25 * 4));
-        }
-        sprite = masterSprite;
+        sprite = defSprite;
     }
     
     public EnemyRocket(double x, double y, double orientation, double speed, double lockAng, double turnRate, double damage, Sprite sprite) {

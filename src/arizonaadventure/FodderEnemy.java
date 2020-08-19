@@ -12,16 +12,13 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class FodderEnemy extends KillableEntity {
-    private static Sprite sprite = null;
+    private static Sprite sprite = new Sprite("cokeplane.png", (int)(60 * 1.1));
     
     private double speed;
     
     public FodderEnemy(double x, double y) {
         super(x, y, generateSquareHitbox(60, 30), 10, 40);
         speed = 225;
-        if(sprite == null) {
-            sprite = new Sprite("cokeplane.png", (int)(60 * 1.1));
-        }
     }
     
     public void draw(Graphics2D g) {

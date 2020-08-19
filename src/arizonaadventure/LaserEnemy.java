@@ -13,10 +13,6 @@ import java.awt.Color;
  * @author macle
  */
 public class LaserEnemy extends KillableEntity {
-    private static final String laser = "laser.wav";
-    private static Sprite sprite;
-    private static Sprite laserStart;
-    private static Sprite laserSect;
     
     private static double width = 65;
     private double speed;
@@ -27,12 +23,17 @@ public class LaserEnemy extends KillableEntity {
     private double finalXCord = -1;
     private double turnRate = 0.5;
     private double fireTolCos;
-    private double laserWidth;
+    private static double laserWidth = 40;
     private double damage = 50;
     private CooldownTimer chargeTime;
     private CooldownTimer fireTime;
     private CooldownTimer cooldown;
     private int soundID = -1;
+    
+    private static final String laser = "laser.wav";
+    private static Sprite sprite = new Sprite("redbulllite.png", (int)(width * 1.5));
+    private static Sprite laserStart = new Sprite("laserStartSection.png", (int) laserWidth);
+    private static Sprite laserSect = new Sprite("laserSection.png", (int) laserWidth);
     
     public LaserEnemy(double x, double y) {
         super(x, y, generateSquareHitbox(width, 25), 350, 70);
@@ -42,12 +43,7 @@ public class LaserEnemy extends KillableEntity {
         fireTime = new CooldownTimer(1);
         cooldown = new CooldownTimer(0.2);
         fireTolCos = Math.cos(Math.PI/180);
-        laserWidth = 40;
-        if(sprite == null) {
-            sprite = new Sprite("redbulllite.png", (int)(width * 1.5));
-            laserStart = new Sprite("laserStartSection.png", (int) laserWidth);
-            laserSect = new Sprite("laserSection.png", (int) laserWidth);
-        }
+
         sprite = new Sprite(sprite);
     }
     

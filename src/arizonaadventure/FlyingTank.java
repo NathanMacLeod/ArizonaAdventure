@@ -13,17 +13,18 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class FlyingTank extends KillableEntity {
-    private static final String boom = "cannonboom.wav";
-    private static Sprite sprite = null;
-    private static Sprite bulletSprite;
-    private static Sprite gun = null;
-    private static Sprite shrapnel;
-    
+
     private static double finalX = 780;
     private static int width = 130;
     private static int height = 130;
     private final double shakeMagnitude = 20;
     private final double shakePeriod = 3;
+    
+    private static final String boom = "cannonboom.wav";
+    private static Sprite sprite = new Sprite("laystank.png", width * 2);
+    private static Sprite bulletSprite = new Sprite("bullet.png", 47);
+    private static Sprite gun = new Sprite("laystankbarrel.png", width * 2);
+    private static Sprite shrapnel = new Sprite("chip.png", 24);
     
     private double life = 0;
     private double gunX = -width/4.0;
@@ -34,16 +35,10 @@ public class FlyingTank extends KillableEntity {
     private CooldownTimer fire;
     
     public FlyingTank(double x, double y) {
-        super(x, y, generateSquareHitbox(width, height), 2700, 55);
+        super(x, y, generateSquareHitbox(width, height), 2700, 150);
         speed = 75;
         fire = new CooldownTimer(0.36);
         gunAng = Math.PI;
-        if(sprite == null) {
-            sprite = new Sprite("laystank.png", width * 2);
-            gun = new Sprite("laystankbarrel.png", width * 2);
-            bulletSprite = new Sprite("bullet.png", 47);
-            shrapnel = new Sprite("chip.png", 24);
-        }
     }
     
     private void shoot(double timePassed, ArizonaAdventure game) {

@@ -123,7 +123,7 @@ public class Player extends KillableEntity {
     }
     
     public void takeDamage(double damage) {
-        if(!invincible && false) {
+        if(!invincible) {
             SoundManager.play(damageTaken);
             super.takeDamage(damage);
             invincible = true;

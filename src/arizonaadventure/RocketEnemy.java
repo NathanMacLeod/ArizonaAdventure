@@ -13,7 +13,7 @@ import java.awt.Graphics2D;
  */
 public class RocketEnemy extends KillableEntity {
     private static final String rocketLaunch = "rocketLaunch.wav";
-    private static Sprite sprite = null;
+    private static Sprite sprite = new Sprite("pepsicopter.png", (int)(65 * 2));
     
     private double speed;
     private boolean reachedX = false;
@@ -30,13 +30,10 @@ public class RocketEnemy extends KillableEntity {
     public RocketEnemy(double x, double y) {
         super(x, y, generateSquareHitbox(65, 50), 420, 70);
         speed = 115;
-        rocketFire = new CooldownTimer(0.75);
+        rocketFire = new CooldownTimer(0.5);
         rocketCount = 0;
         timeTraveled = 0;
         
-        if(sprite == null) {
-            sprite = new Sprite("pepsicopter.png", (int)(65 * 2));
-        }
     }
     
     public void draw(Graphics2D g) {

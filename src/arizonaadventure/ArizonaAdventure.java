@@ -166,7 +166,7 @@ public class ArizonaAdventure extends JPanel implements Runnable {
             if(inMenu) {
                 menus(timePassed);
             }
-            else {
+            else if(timePassed < 0.25) { //prevents big stuttors from disrupting game
                 gameUpdate(timePassed);
                 if(!inMenu) {
                     gameRender();
@@ -200,13 +200,13 @@ public class ArizonaAdventure extends JPanel implements Runnable {
                     maxTokens += 15;
                     break;
                 case 3:
-                    upgradeTokens += 5;
-                    maxTokens += 5;
+                    upgradeTokens += 75;
+                    maxTokens += 75;
                     break;
             }
             save();
         }
-        currPanel = new LevelSelect(maxLevel);
+        currPanel = (currLevelNumber == 3 && completed)? new Credits() : new LevelSelect(maxLevel);
         click = false;
         inMenu = true;
     }
@@ -221,9 +221,6 @@ public class ArizonaAdventure extends JPanel implements Runnable {
                 break;
             case 3:
                 currLevel = new Level3((int) getGameWidth(), (int) getGameHeight(), this);
-                break;
-            case 4:
-                currLevel = new Level4((int) getGameWidth(), (int) getGameHeight(), this);
                 break;
             default:
                 System.out.println("No corresponding level found");
@@ -248,7 +245,7 @@ public class ArizonaAdventure extends JPanel implements Runnable {
         click = false;
         Graphics2D g = (Graphics2D) buffer.getGraphics();
         currPanel.draw(g);
-        if(!(currPanel instanceof MainMenu)) {
+        if(!(currPanel instanceof MainMenu) && !(currPanel instanceof Credits)) {
             drawTokens(g);
         }
         getGraphics().drawImage(buffer, 0, 0, null);  

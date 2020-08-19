@@ -115,11 +115,11 @@ public class TrainBoss implements Boss {
         currentCar = 0;
         movingCars = true;
         cars = new TrainCar[] {
-            new TrainCar(0, 0, 450, 170, new Sprite(mtwndewCar)), 
+            new TrainCar(0, 0, 450, 150, new Sprite(mtwndewCar)), 
             new TrainCar(0, 0, 450, 150, new Sprite(liptonCar)), 
             new TrainCar(0, 0, 450, 150, new Sprite(sierraCar)),
             new TrainCar(0, 0, 450, 150, new Sprite(pepsiCar)),  
-            new TrainCar(0, 0, 450, 150, new Sprite(pepsicoCar))
+            new TrainCar(0, 0, 450, 160, new Sprite(pepsicoCar))
         };
         
         double init = 100;

@@ -12,8 +12,6 @@ import java.awt.Graphics2D;
  */
 public class SpikeObstacle extends KillableEntity {
     private static final String slam = "spikeslam.wav";
-    private static Sprite spikeHead = null;
-    private static Sprite post;
     private static double restY = 75;
     private static double upLength = 3;
     private static int width = 100;
@@ -28,14 +26,12 @@ public class SpikeObstacle extends KillableEntity {
     private double leftSpeed = -MechBoss.getWalkSpeed() * 3.0/2;
     private CooldownTimer downTime;
     private CooldownTimer upTime;
+    private static Sprite spikeHead = new Sprite("spikehead.png", (int) (width * 1.7));
+    private static Sprite post = new Sprite("spikepost.png", (int) (postHeight * 1.3));
     
     public SpikeObstacle(double x, ArizonaAdventure game, double time) {
         super(x, restY, generateSquareHitbox(width, height), 100000000, 1);
-        
-        if(spikeHead == null) {
-            spikeHead = new Sprite("spikehead.png", (int) (width * 1.7));
-            post = new Sprite("spikepost.png", (int) (postHeight * 1.3));
-        }
+
         state = SpikeState.Risen;
         
         postHitbox = new KillableEntity(x, restY - (height + postHeight)/2.0, generateSquareHitbox(postWidth, postHeight), 100000000, 1) {

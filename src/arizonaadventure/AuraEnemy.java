@@ -14,8 +14,8 @@ import java.awt.Graphics2D;
  */
 public class AuraEnemy extends KillableEntity {
     private static final String zap = "zap.wav";
-    private static Sprite sprite = null;
-    private static Sprite bulletSprite;
+    private static Sprite sprite = new Sprite("electricgatorade.png", (int)(70 * 1.5));
+    private static Sprite bulletSprite = new Sprite("thunderbolt.png", 60);
     
     private int nProj = 6;
     private double projVel = 250;
@@ -29,10 +29,6 @@ public class AuraEnemy extends KillableEntity {
         super(x, y, generateSquareHitbox(70, 45), 250, 55);
         speed = 75;
         fire = new CooldownTimer(0.65);
-        if(sprite == null) {
-            sprite = new Sprite("electricgatorade.png", (int)(70 * 1.5));
-            bulletSprite = new Sprite("thunderbolt.png", 60);
-        }
         double dTheta = 2 * Math.PI / nProj;
         cos = Math.cos(dTheta);
         sin = Math.sin(dTheta);

@@ -9,6 +9,8 @@ import java.io.File;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineListener;
+import javax.sound.sampled.LineEvent;
 
 /**
  *
@@ -30,24 +32,32 @@ public class SoundManager {
             private int ID;
             private boolean looped;
             private String effect;
+            private Clip sfx;
             
             public AudioThread(int ID, boolean looped, String effect) {
                 this.ID = ID;
                 this.looped = looped;
                 this.effect = "./sfx/" + effect;
                 new Thread(this).start();
-            } 
+            }             
             
             public void run() {
                 try {
                     AudioInputStream input = AudioSystem.getAudioInputStream(new File(effect));
-                    Clip sfx = AudioSystem.getClip();
+                    sfx = AudioSystem.getClip();
                     sfx.open(input);
                     if(looped) {
                         sfx.loop(Clip.LOOP_CONTINUOUSLY);
                     }
                     sfx.start();
                     buff[ID] = sfx;
+                    sfx.addLineListener(new LineListener() {
+                    public void update(LineEvent myLineEvent) {
+                        if (myLineEvent.getType() == LineEvent.Type.STOP) {
+                            sfx.close();
+                        }
+                    }
+                  });
                     
                 }
                 catch(Exception e) {
@@ -57,9 +67,22 @@ public class SoundManager {
         
         }
         
+        private static class ClipTerminateThread implements Runnable {
+            Clip clip;
+            
+            public ClipTerminateThread(Clip clip) {
+                this.clip = clip;
+                new Thread(this).start();
+            }
+            
+            public void run() {
+                clip.close();
+            }
+        }
+        
         public static void terminateSFX(int id) {
             if(buff[id] != null) {
-                buff[id].close();
+                new ClipTerminateThread(buff[id]);
                 buff[id] = null;
             }
         }

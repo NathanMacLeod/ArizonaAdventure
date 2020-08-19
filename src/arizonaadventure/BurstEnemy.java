@@ -13,8 +13,8 @@ import java.awt.Graphics2D;
  * @author macle
  */
 public class BurstEnemy extends KillableEntity {
-    private static Sprite sprite = null;
-    private static Sprite bulletSprite;
+    private static Sprite sprite = new Sprite("gamerdrone.png", (int)(50 * 2));
+    private static Sprite bulletSprite = new Sprite("gfuel.png", (int)(16 * 2));
     private static final String fireSound = "pew.wav";
     private CooldownTimer burst;
     private final int burstSize = 4;
@@ -29,10 +29,6 @@ public class BurstEnemy extends KillableEntity {
         fire = new CooldownTimer(5);
         burst = new CooldownTimer(0.6);
         burst.resetTimer();
-        if(sprite == null) {
-            sprite = new Sprite("gamerdrone.png", (int)(50 * 2));
-            bulletSprite = new Sprite("gfuel.png", (int)(16 * 2));
-        }
     }
     
     private void shoot(double timePassed, ArizonaAdventure game) {

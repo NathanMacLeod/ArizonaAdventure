@@ -13,9 +13,9 @@ import java.util.ArrayList;
  * @author macle
  */
 public class BasicEnemy extends KillableEntity {
-    private static Sprite sprite = null;
+    private static Sprite sprite = new Sprite("spritesprey.png", (int)(50 * 2));
     private static final String fireSound = "pew.wav";
-    private static Sprite bulletSprite;
+    private static Sprite bulletSprite = new Sprite("spritebullet.png", (int)(16 * 2));
     
     private double speed;
     private CooldownTimer fire;
@@ -24,10 +24,6 @@ public class BasicEnemy extends KillableEntity {
         super(x, y, generateSquareHitbox(50, 35), 100, 55);
         speed = 75;
         fire = new CooldownTimer(0.65);
-        if(sprite == null) {
-            sprite = new Sprite("spritesprey.png", (int)(50 * 2));
-            bulletSprite = new Sprite("spritebullet.png", (int)(16 * 2));
-        }
     }
     
     private void shoot(double timePassed, ArizonaAdventure game) {
