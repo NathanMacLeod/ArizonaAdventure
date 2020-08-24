@@ -1,5 +1,7 @@
 /*
- * File added by Nathan MacLeod 2020
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 package arizonaadventure;
 
@@ -110,7 +112,6 @@ public class MechBoss extends KillableEntity implements Boss {
     private CooldownTimer secondThemeDelay;
     private boolean canFlash = true;
     private boolean onRight;
-    private boolean playStomp;
     
     //shotgun stuff
     private double shotCone = Math.PI/12;
@@ -697,7 +698,7 @@ public class MechBoss extends KillableEntity implements Boss {
                         case BuddyBall:
                             laserTime += timePassed;
                             laserTime %= 3.0;
-                            if(laserTime <= 1.6) {
+                            if(laserTime <= 1.8) {
                                 if(fireLaser && laserSFXID != -1) {
                                     SoundManager.terminateSFX(laserSFXID);
                                     buddiesLasering--;
@@ -1000,25 +1001,27 @@ public class MechBoss extends KillableEntity implements Boss {
                     if(buddyBallT >= 0) {
                         buddyBallCoord.x += timePassed * buddyBallV.x;
                         buddyBallCoord.y += timePassed * buddyBallV.y;
-
-                        if(buddyBallCoord.x < buddyBallRadius) {
-                            buddyBallCoord.x = buddyBallRadius;
+                        double buffer = 20;
+                        double radius = buddyBallRadius + buffer;
+                        
+                        if(buddyBallCoord.x < radius) {
+                            buddyBallCoord.x = radius;
                             buddyBallV.x *= -1;
                         }
-                        else if(buddyBallCoord.x > game.getGameWidth() - buddyBallRadius) {
-                            buddyBallCoord.x = game.getGameWidth() - buddyBallRadius;
+                        else if(buddyBallCoord.x > game.getGameWidth() - radius) {
+                            buddyBallCoord.x = game.getGameWidth() - radius;
                             buddyBallV.x *= -1;
                         }
-                        if(buddyBallCoord.y < buddyBallRadius) {
-                            buddyBallCoord.y = buddyBallRadius;
+                        if(buddyBallCoord.y < radius) {
+                            buddyBallCoord.y = radius;
                             buddyBallV.y *= -1;
                         }
-                        else if(buddyBallCoord.y > game.getGameHeight() - buddyBallRadius) {
-                            buddyBallCoord.y = game.getGameHeight() - buddyBallRadius;
+                        else if(buddyBallCoord.y > game.getGameHeight() - radius) {
+                            buddyBallCoord.y = game.getGameHeight() - radius;
                             buddyBallV.y *= -1;
                         }
                             
-                        double ang = buddyBallT / 2;
+                        double ang = buddyBallT / 3;
                         for(int j = 0; j < buddyBall.size(); j++) {
                             LaserBuddy b = buddyBall.get(j);
                             b.teleportToCoord(buddyBallCoord.x + buddyBallRadius * Math.cos(ang), buddyBallCoord.y + buddyBallRadius * Math.sin(ang));
@@ -1052,11 +1055,11 @@ public class MechBoss extends KillableEntity implements Boss {
         if(state == BossState.Fly) {
             if(hpBefore/startingHP > 2.0/3 &&
                     hp/startingHP <= 2.0/3) {
-                releaseBuddies(12);
+                releaseBuddies(11);
             }
             else if(hpBefore/startingHP > 1.0/3 &&
                     hp/startingHP <= 1.0/3) {
-                releaseBuddies(16);
+                releaseBuddies(14);
             }
         }
     }

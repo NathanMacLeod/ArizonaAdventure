@@ -1,5 +1,7 @@
 /*
- * File added by Nathan MacLeod 2020
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 package arizonaadventure;
 
@@ -104,7 +106,7 @@ public class Player extends KillableEntity {
             for(KillableEntity e : game.getEnemies()) {
                 if(!e.nonPlayerCollidable && this.hitboxesIntersecting(e)) {
                     e.takeDamage(200);
-                    this.takeDamage(50);
+                    this.takeDamage(35);
                     break;
                 }
             }

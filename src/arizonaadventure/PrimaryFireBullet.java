@@ -1,5 +1,7 @@
 /*
- * File added by Nathan MacLeod 2020
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 package arizonaadventure;
 
@@ -21,7 +23,7 @@ public class PrimaryFireBullet extends Projectile {
     
     protected void addExplosion(ArizonaAdventure game) {
         super.addExplosion(game);
-        SoundManager.play(boom);
+        //SoundManager.play(boom);
         
     }
      

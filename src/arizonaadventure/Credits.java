@@ -1,5 +1,7 @@
 /*
- * File added by Nathan MacLeod 2020
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 package arizonaadventure;
 
@@ -32,18 +34,13 @@ public class Credits extends ImagePanel {
         "",
         "Source images for sprites found on Google Images",
         "",
-        "Devon:",
-        "Redbull laser satellite",
-        "Teapot turret",
-        "Sierra mist turret",
-        "Wii-remote turret",
-        "Train engine car",
-        "",
         "",
         "Sound effects and music from freesound.org",
         "",
         "Sirkoto51:",
         "Success Loop #1.wav",
+        "Anime Encounter Loop #4",
+        "Anime Encounter #2",
         "Level Loop - Unleash The Universe",
         "Boss Battle Loop #1",
         "Boss Battle Loop #2",
@@ -51,6 +48,7 @@ public class Credits extends ImagePanel {
         "Boss Battle Loop #3",
         "",
         "EFlexMusic:",
+        "Collapsing Building Interior (Small)(Mixed)",
         "Artillery Explosion (Close)(Mixed)",
         "",
         "lulyc:   Retro game heal sound",
@@ -80,6 +78,17 @@ public class Credits extends ImagePanel {
         "Kodack:   Unrelenting Shotgun",
         "",
         "",
+        "Special Thanks to:",
+        "",
+        "Devon:",
+        "Redbull laser satellite",
+        "Teapot turret",
+        "Sierra mist turret",
+        "Wii-remote turret",
+        "Train engine car",
+        "",
+        "Alexis:",
+        "Playtesting",
         "",
         "",
         "Thanks for playing :)"

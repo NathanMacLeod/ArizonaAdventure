@@ -1,5 +1,7 @@
 /*
- * File added by Nathan MacLeod 2020
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 package arizonaadventure;
 
@@ -20,6 +22,7 @@ public class Level3 extends Level{
     private boolean bossHide = false;
     private boolean bossReapper = false;
     private boolean transitioned = false;
+    private static boolean bossCheckpoint = false;
     
     public Level3(int width, int height, ArizonaAdventure game) {
         super(width, height, game);
@@ -114,6 +117,10 @@ public class Level3 extends Level{
     public void update(double timePassed, ArizonaAdventure game) {
         super.update(timePassed, game);
         
+        if(bossDead) {
+            bossCheckpoint = false;
+        }
+        
         if(!transitioned && finalWave()) {
             transitioned = true;
             transition();
@@ -131,17 +138,20 @@ public class Level3 extends Level{
     }
     
     protected void setWaves() {
-        waves = new ArrayList(); 
-        waves.add(new SpawnPeriod(60, 2, new int[] {20, 25, 5, 4, 0, 10, 0}));
-        waves.add(new SpawnPeriod(40, 2, new int[] {7, 16, 4, 2, 0, 6, 9}));
-        waves.add(new SpawnPeriod(5, 1, new int[] {0, 0, 0, 0, 0, 0, 0, 2}));
-        waves.add(new SpawnPeriod(3, 1, new int[] {0, 0, 0, 0, 1, 0, 0, 0}));
-        waves.add(new SpawnPeriod(75, 2.2, new int[] {8, 14, 4, 2, 0, 6, 5, 2}));
-        waves.add(new SpawnPeriod(3, 1, new int[] {0, 0, 0, 0, 1, 0, 0, 0}));
+        waves = new ArrayList();
+        if(!bossCheckpoint) {
+            waves.add(new SpawnPeriod(60, 2, new int[] {20, 25, 5, 4, 0, 10, 0}));
+            waves.add(new SpawnPeriod(40, 2, new int[] {7, 16, 4, 2, 0, 6, 9}));
+            waves.add(new SpawnPeriod(5, 1, new int[] {0, 0, 0, 0, 0, 0, 0, 2}));
+            waves.add(new SpawnPeriod(3, 1, new int[] {0, 0, 0, 0, 1, 0, 0, 0}));
+            waves.add(new SpawnPeriod(75, 2.2, new int[] {8, 14, 4, 2, 0, 6, 5, 2}));
+            waves.add(new SpawnPeriod(3, 1, new int[] {0, 0, 0, 0, 1, 0, 0, 0}));
+        }
         waves.add(new SpawnPeriod(50, 1, new int[] {0, 25, 0, 0, 0, 0, 0, 0}));
     }
     
     protected Boss spawnBoss(ArizonaAdventure game) {
+        bossCheckpoint = true;
         spawnSpikes(game);
         MechBoss b = new MechBoss(game);
         panSpeed = 7.0/2 * MechBoss.getWalkSpeed();
