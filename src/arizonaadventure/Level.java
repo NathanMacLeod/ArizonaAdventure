@@ -28,7 +28,7 @@ public abstract class Level implements Updatable, Drawable {
     
     protected Boss boss;
     protected boolean bossFight;
-    private boolean bossDead;
+    protected boolean bossDead;
     
     protected int backgroundWidth;
     protected BufferedImage foreground;
