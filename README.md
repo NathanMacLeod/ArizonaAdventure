@@ -3,8 +3,8 @@
 This is a game I programmed over the summer that originated as an in-joke between me and a friend who likes Arizona iced tea a little too much. 
 I had a lot of fun making it and am pretty happy with how it came out.
 
-I'm pretty happy with how game came out design wise for the most part. This was my first time implementing sound in java. In order to handle playing all the sounds,
-I created a static class for the purpose of managing sounds, outide classes can request the sound manager to play a sound by giving the relative url to the sound, and
+I'm pretty happy with how game came out code structure wise. This was my first time implementing sound in java. In order to handle playing all the sounds,
+I created a static class for the purpose of managing sounds, outside classes can request the sound manager to play a sound by giving the file path to the sound file, and
 it will start a new thread to load the sound file and play it. Some sounds like the laser sound are pretty long and require early termination, so for this purpose
 the sound manager will return an ID correlated to the sound. Enteties can then request to sound manager to terminate the sound early by passing it in this ID. The system
 works for the most part, although it will occasionally get bogged down and pause sounds for a few seconds. I used to have a sound for bullet hits, but removed it
